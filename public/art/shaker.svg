@@ -1,0 +1,29 @@
+<svg viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Shaker">
+  <defs>
+    <linearGradient id="shBody" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fcfaf8"/>
+      <stop offset="1" stop-color="#eaded8"/>
+    </linearGradient>
+    <linearGradient id="shLiquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a13b60"/>
+      <stop offset="1" stop-color="#6d0b2f"/>
+    </linearGradient>
+    <linearGradient id="shLid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#530422"/>
+      <stop offset="1" stop-color="#350015"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="100" cy="282" rx="66" ry="12" fill="#21000d" opacity="0.28"/>
+  <path d="M46 108 q0 -14 12 -16 h84 q12 2 12 16 v150 a24 24 0 0 1 -24 24 h-60 a24 24 0 0 1 -24 -24 Z" fill="url(#shBody)" stroke="#c99d61" stroke-width="2" opacity="0.98"/>
+  <path d="M46 190 v68 a24 24 0 0 0 24 24 h60 a24 24 0 0 0 24 -24 v-68 Z" fill="url(#shLiquid)" opacity="0.9"/>
+  <path d="M46 190 q27 -12 54 0 t54 0 v6 q-27 12 -54 0 t-54 0 Z" fill="#d7a2b5" opacity="0.6"/>
+  <rect x="54" y="80" width="92" height="30" rx="10" fill="url(#shLid)"/>
+  <rect x="66" y="66" width="68" height="20" rx="8" fill="#43001b"/>
+  <g stroke="#ffffff" opacity="0.35" stroke-width="2">
+    <line x1="150" y1="120" x2="150" y2="170"/>
+    <line x1="150" y1="126" x2="140" y2="126"/>
+    <line x1="150" y1="146" x2="140" y2="146"/>
+    <line x1="150" y1="166" x2="140" y2="166"/>
+  </g>
+  <rect x="62" y="122" width="10" height="150" rx="5" fill="#ffffff" opacity="0.5"/>
+</svg>

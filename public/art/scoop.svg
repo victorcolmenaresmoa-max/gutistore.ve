@@ -1,0 +1,23 @@
+<svg viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cuchara medidora">
+  <defs>
+    <linearGradient id="scGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fcfaf8"/><stop offset="1" stop-color="#eaded8"/>
+    </linearGradient>
+    <linearGradient id="powGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d7a2b5"/><stop offset="1" stop-color="#a13b60"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="110" cy="176" rx="80" ry="13" fill="#21000d" opacity="0.18"/>
+  <path d="M40 120 q0 44 46 44 q46 0 46 -44 Z" fill="url(#scGrad)" stroke="#c99d61" stroke-width="2"/>
+  <path d="M40 120 q46 -18 92 0 q0 8 -46 8 q-46 0 -46 -8 Z" fill="url(#powGrad)"/>
+  <path d="M52 116 q34 -10 68 0" fill="none" stroke="#f3e5ea" stroke-width="3" opacity="0.7"/>
+  <rect x="128" y="96" width="58" height="16" rx="8" transform="rotate(-24 128 96)" fill="url(#scGrad)" stroke="#c99d61" stroke-width="2"/>
+  <circle cx="180" cy="78" r="11" fill="#e3c69d"/>
+  <g fill="#a13b60" opacity="0.75">
+    <circle cx="150" cy="150" r="4"/>
+    <circle cx="168" cy="164" r="3"/>
+    <circle cx="60" cy="158" r="3.5"/>
+    <circle cx="44" cy="146" r="2.5"/>
+    <circle cx="180" cy="150" r="2.5"/>
+  </g>
+</svg>

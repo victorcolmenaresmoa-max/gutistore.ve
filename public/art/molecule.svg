@@ -1,0 +1,22 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Molécula">
+  <g stroke="#e3c69d" stroke-width="2.5" opacity="0.9">
+    <line x1="40" y1="60" x2="100" y2="90"/>
+    <line x1="100" y1="90" x2="160" y2="60"/>
+    <line x1="100" y1="90" x2="100" y2="150"/>
+    <line x1="100" y1="150" x2="52" y2="170"/>
+    <line x1="100" y1="150" x2="150" y2="168"/>
+  </g>
+  <g fill="#e3c69d">
+    <circle cx="40" cy="60" r="9"/>
+    <circle cx="160" cy="60" r="9"/>
+    <circle cx="100" cy="90" r="12"/>
+    <circle cx="100" cy="150" r="10"/>
+    <circle cx="52" cy="170" r="8"/>
+    <circle cx="150" cy="168" r="8"/>
+  </g>
+  <g fill="#c99d61" opacity="0.5">
+    <circle cx="40" cy="60" r="4"/>
+    <circle cx="160" cy="60" r="4"/>
+    <circle cx="100" cy="90" r="5"/>
+  </g>
+</svg>
