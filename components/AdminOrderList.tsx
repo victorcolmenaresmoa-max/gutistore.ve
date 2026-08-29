@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { OrderRecord } from '@/types';
 import Icon from './Icons';
 
@@ -37,15 +37,13 @@ function buildWhatsappMessage(order: OrderRecord) {
     ? items
         .map(
           (item) =>
-            `• ${item.cantidad} × ${item.nombre} — $${(
-              item.cantidad * item.precio
-            ).toFixed(2)}`
+            `• ${item.cantidad} × ${item.nombre}${item.variante ? ` (${item.variante})` : ''} — $${(item.cantidad * item.precio).toFixed(2)}`
         )
         .join('\n')
     : '• Producto por confirmar';
 
   return [
-    `Hola ${order.cliente}, somos GutiSupplements.`,
+    `Hola ${order.cliente}, somos GutiStore.`,
     '',
     `Recibimos tu pedido #${order.id.slice(0, 8).toUpperCase()}:`,
     productLines,
@@ -63,14 +61,17 @@ interface Props {
   orders: OrderRecord[];
   changingStatusId: string | null;
   onStatusChange: (id: string, status: string) => Promise<void>;
+  initialExpandedId?: string;
 }
 
 export default function AdminOrderList({
   orders,
   changingStatusId,
   onStatusChange,
+  initialExpandedId,
 }: Props) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId || null);
+  useEffect(() => { if (initialExpandedId) setExpandedId(initialExpandedId); }, [initialExpandedId]);
   const [filter, setFilter] = useState('Todos');
   const [search, setSearch] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -141,7 +142,7 @@ export default function AdminOrderList({
         <div className="admin-empty-state">
           <span className="empty-icon"><Icon name="orders" size={30} /></span>
           <h4>No hay pedidos para mostrar</h4>
-          <p>Las nuevas solicitudes aparecerán aquí cuando el Apps Script esté conectado a esta misma hoja.</p>
+          <p>Las nuevas solicitudes aparecerán aquí automáticamente cuando se registren en GutiStore.</p>
         </div>
       ) : (
         <div className="orders-list">
@@ -185,7 +186,7 @@ export default function AdminOrderList({
 
                 <div className="order-products-preview">
                   {items.slice(0, 3).map((item) => (
-                    <span key={`${order.id}-${item.id}`}>{item.cantidad} × {item.nombre}</span>
+                    <span key={`${order.id}-${item.id}-${item.variantId || ''}`}>{item.cantidad} × {item.nombre}{item.variante ? ` · ${item.variante}` : ''}</span>
                   ))}
                   {items.length === 0 && <span>Producto por confirmar</span>}
                 </div>
@@ -247,12 +248,12 @@ export default function AdminOrderList({
                     </section>
 
                     <section className="order-detail-products">
-                      <h5>Producto solicitado</h5>
+                      <h5>Productos solicitados</h5>
                       <div>
                         {items.map((item) => (
-                          <article key={`${order.id}-detail-${item.id}`}>
-                            <span>{item.cantidad} × {item.nombre}</span>
-                            <strong>${(item.cantidad * item.precio).toFixed(2)}</strong>
+                          <article key={`${order.id}-detail-${item.id}-${item.variantId || ''}`}>
+                            <span>{item.cantidad} × {item.nombre}{item.variante ? <small>{item.variante}</small> : null}{item.sku ? <small>SKU: {item.sku}</small> : null}</span>
+                            <strong>${Number(item.subtotal ?? item.cantidad * item.precio).toFixed(2)}</strong>
                           </article>
                         ))}
                         <article className="order-detail-total">

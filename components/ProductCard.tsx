@@ -1,66 +1,52 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
-import { Product } from '@/types';
+import type { Product } from '@/types';
 import Icon from './Icons';
-import { formatUSD } from '@/lib/currency';
+import { formatBs, formatUSD, hasRate } from '@/lib/currency';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export default function ProductCard({ product }: { product: Product }) {
-  const productUrl = `/producto/${encodeURIComponent(product.id)}`;
+  const { rate } = useCurrency();
+  const productUrl = `/producto/${encodeURIComponent(product.slug || product.id)}`;
+  const hasVariants = Boolean(product.variantes?.length);
+  const inStock = product.stock > 0;
+  const comparePrice = product.precioAnterior && product.precioAnterior > product.precio ? product.precioAnterior : null;
 
   return (
     <article className="product-card">
       <Link href={productUrl} className="product-card-link">
         <div className="product-media">
-          <img
-            src={
-              product.imagen ||
-              'https://placehold.co/900x900/5d0a2a/ffffff?text=GutiSupplements'
-            }
-            alt={product.nombre}
-            loading="lazy"
-          />
-          <div className="product-media-shade" />
-          {product.categoria && <span className="product-tag">{product.categoria}</span>}
-          {product.destacado && (
-            <span className="product-featured">
-              <Icon name="sparkles" size={14} /> Destacado
-            </span>
+          {product.imagen ? (
+            <Image src={product.imagen} alt={product.nombre} fill sizes="(max-width: 700px) 50vw, (max-width: 1200px) 33vw, 280px" />
+          ) : (
+            <div className="product-placeholder"><Icon name="package" size={42} /></div>
           )}
+          {product.categoria && <span className="product-tag">{product.categoria}</span>}
+          {product.destacado && <span className="product-featured"><Icon name="sparkles" size={13} /> Destacado</span>}
         </div>
 
         <div className="product-body">
-          <div className="product-heading-row">
-            <div>
-              <h3>{product.nombre}</h3>
-              {product.presentacion && <span>{product.presentacion}</span>}
-            </div>
-            <div className="product-price">{formatUSD(product.precio)}</div>
+          <div className="product-card-brand-row">
+            <span>{product.marca || product.categoria}</span>
+            <span className={inStock ? 'stock-ok' : 'stock-out'}>{inStock ? 'Disponible' : 'Agotado'}</span>
           </div>
-
-          <p>{product.descripcion}</p>
-
-          <div className="product-meta-row">
-            <span className={product.stock > 0 ? 'stock-ok' : 'stock-out'}>
-              {product.stock > 0 ? `${product.stock} disponibles` : 'Agotado'}
-            </span>
-            <span className="details-link">
-              Ver detalles <Icon name="arrowRight" size={15} />
-            </span>
+          <h3>{product.nombre}</h3>
+          <p>{product.descripcionCorta || product.descripcion}</p>
+          <div className="product-price-row">
+            <div>
+              <strong>{formatUSD(product.precio)}</strong>
+              {comparePrice && <del>{formatUSD(comparePrice)}</del>}
+              {hasRate(rate) && <small>{formatBs(product.precio, rate)}</small>}
+            </div>
+            {hasVariants && <span>{product.variantes?.length} variantes</span>}
           </div>
         </div>
       </Link>
-
-      <div className="product-card-action">
-        <Link
-          href={productUrl}
-          className={`btn btn-primary btn-block ${product.stock <= 0 ? 'disabled' : ''}`}
-          aria-disabled={product.stock <= 0}
-        >
-          <Icon name="arrowRight" size={17} />
-          {product.stock <= 0 ? 'Producto agotado' : 'Ver producto y solicitar'}
-        </Link>
-      </div>
+      <Link href={productUrl} className={`btn btn-card ${!inStock ? 'disabled' : ''}`} aria-disabled={!inStock}>
+        {inStock ? 'Ver opciones' : 'Sin stock'} <Icon name="arrowRight" size={15} />
+      </Link>
     </article>
   );
 }

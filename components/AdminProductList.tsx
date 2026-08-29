@@ -1,71 +1,9 @@
 'use client';
 
-import { Product } from '@/types';
+import Image from 'next/image';
+import type { Product } from '@/types';
 import Icon from './Icons';
 
-interface Props {
-  products: Product[];
-  onEdit: (product: Product) => void;
-  onDelete: (id: string) => void;
-  deletingId: string | null;
-}
-
-export default function AdminProductList({
-  products,
-  onEdit,
-  onDelete,
-  deletingId,
-}: Props) {
-  return (
-    <section className="admin-panel">
-      <div className="admin-panel-heading">
-        <div>
-          <span className="eyebrow">Inventario</span>
-          <h3>Productos publicados</h3>
-        </div>
-        <span className="admin-count-pill">{products.length}</span>
-      </div>
-
-      {products.length === 0 ? (
-        <div className="admin-empty-state">
-          <span className="empty-icon"><Icon name="package" size={30} /></span>
-          <h4>Aún no hay productos</h4>
-          <p>Crea el primero usando el formulario.</p>
-        </div>
-      ) : (
-        <div className="admin-product-list">
-          {products.map((product) => (
-            <article className="admin-product-row" key={product.id}>
-              <img
-                src={product.imagen || 'https://placehold.co/180x180/5d0a2a/ffffff?text=GS'}
-                alt={product.nombre}
-              />
-              <div className="admin-product-main">
-                <div className="admin-product-title-row">
-                  <div>
-                    <h4>{product.nombre}</h4>
-                    <span>{product.categoria || 'General'}{product.presentacion ? ` · ${product.presentacion}` : ''}</span>
-                  </div>
-                  {product.destacado && <span className="mini-featured"><Icon name="sparkles" size={12} /> Destacado</span>}
-                </div>
-                <p>{product.descripcion}</p>
-                <div className="admin-product-metrics">
-                  <span><small>Precio</small><strong>${product.precio.toFixed(2)} USD</strong></span>
-                  <span><small>Stock</small><strong className={product.stock <= 5 ? 'low-stock' : ''}>{product.stock} unidades</strong></span>
-                </div>
-              </div>
-              <div className="admin-row-actions">
-                <button className="admin-action-btn" onClick={() => onEdit(product)} title="Editar producto">
-                  <Icon name="edit" size={17} />
-                </button>
-                <button className="admin-action-btn danger" onClick={() => onDelete(product.id)} disabled={deletingId === product.id} title="Eliminar producto">
-                  {deletingId === product.id ? <span className="spinner" /> : <Icon name="trash" size={17} />}
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
-    </section>
-  );
+export default function AdminProductList({ products, onEdit, onDelete, deletingId }: { products: Product[]; onEdit: (product: Product) => void; onDelete: (id: string) => void; deletingId: string | null }) {
+  return <section className="admin-panel"><div className="admin-panel-heading"><div><span className="eyebrow">Productos</span><h3>Catálogo completo</h3><p>Los productos archivados se conservan para proteger pedidos históricos.</p></div><span className="admin-count-pill">{products.length}</span></div>{products.length ? <div className="admin-product-list">{products.map((product) => <article className={`admin-product-row ${product.activo === false ? 'is-inactive' : ''}`} key={product.id}><div className="admin-product-thumb">{product.imagen ? <Image src={product.imagen} alt={product.nombre} fill sizes="78px" /> : <Icon name="package" size={26} />}</div><div className="admin-product-main"><div className="admin-product-title-row"><div><h4>{product.nombre}</h4><span>{product.categoria}{product.marca ? ` · ${product.marca}` : ''}</span></div><div className="mini-badges">{product.destacado && <span><Icon name="sparkles" size={11} /> Destacado</span>}<span className={product.activo !== false && product.estado === 'active' ? 'active' : 'inactive'}>{product.activo !== false && product.estado === 'active' ? 'Publicado' : product.estado === 'draft' ? 'Borrador' : 'Archivado'}</span></div></div><p>{product.descripcionCorta || product.descripcion}</p><div className="admin-product-metrics"><span><small>Precio</small><strong>${product.precio.toFixed(2)}</strong></span><span><small>Stock</small><strong className={product.stock <= 5 ? 'low-stock' : ''}>{product.stock}</strong></span><span><small>Variantes</small><strong>{product.variantes?.length || 0}</strong></span></div></div><div className="admin-row-actions"><button className="admin-action-btn" onClick={() => onEdit(product)} title="Editar"><Icon name="edit" size={17} /></button>{product.activo !== false && <button className="admin-action-btn danger" onClick={() => onDelete(product.id)} disabled={deletingId === product.id} title="Archivar">{deletingId === product.id ? <span className="spinner" /> : <Icon name="trash" size={17} />}</button>}</div></article>)}</div> : <div className="admin-empty-state"><Icon name="package" size={30} /><h4>Aún no hay productos</h4><p>Crea el primero desde el editor.</p></div>}</section>;
 }

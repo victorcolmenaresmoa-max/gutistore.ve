@@ -1,5 +1,6 @@
-import {
+import type {
   ApiResponse,
+  Category,
   OrderPayload,
   OrderRecord,
   Product,
@@ -30,15 +31,12 @@ async function apiFetch<T>(
     console.error('Error al llamar a la API interna:', error);
     return {
       ok: false,
-      message:
-        'No se pudo conectar con el servidor de la tienda. Verifica la conexión y las variables de Supabase en Vercel.',
+      message: 'No se pudo conectar con el servidor de GutiStore. Verifica tu conexión e inténtalo nuevamente.',
     };
   }
 }
 
-export async function checkAdminSession(): Promise<
-  ApiResponse<{ authenticated: boolean }>
-> {
+export async function checkAdminSession(): Promise<ApiResponse<{ authenticated: boolean }>> {
   try {
     const response = await fetch('/api/admin/session', {
       method: 'GET',
@@ -51,9 +49,7 @@ export async function checkAdminSession(): Promise<
   }
 }
 
-export async function adminLogin(
-  password: string
-): Promise<ApiResponse<{ authenticated: boolean }>> {
+export async function adminLogin(password: string): Promise<ApiResponse<{ authenticated: boolean }>> {
   try {
     const response = await fetch('/api/admin/session', {
       method: 'POST',
@@ -79,89 +75,117 @@ export async function adminLogout(): Promise<ApiResponse<{ authenticated: boolea
   }
 }
 
-export async function getProducts(): Promise<ApiResponse<Product[]>> {
-  return apiFetch<Product[]>('getProducts');
+export async function getProducts(options: { categorySlug?: string; search?: string; admin?: boolean } = {}) {
+  return apiFetch<Product[]>('getProducts', options);
 }
 
-export async function getProduct(id: string): Promise<ApiResponse<Product>> {
-  return apiFetch<Product>('getProduct', { id });
+export async function getProduct(idOrSlug: string) {
+  return apiFetch<Product>('getProduct', { id: idOrSlug });
 }
 
-export async function addProduct(
-  product: Omit<Product, 'id'>
-): Promise<ApiResponse<Product>> {
+export async function addProduct(product: Omit<Product, 'id'>) {
   return apiFetch<Product>('addProduct', { product });
 }
 
-export async function updateProduct(
-  product: Product
-): Promise<ApiResponse<Product>> {
+export async function updateProduct(product: Product) {
   return apiFetch<Product>('updateProduct', { product });
 }
 
-export async function deleteProduct(id: string): Promise<ApiResponse<null>> {
+export async function deleteProduct(id: string) {
   return apiFetch<null>('deleteProduct', { id });
 }
 
-export async function createOrder(
-  order: OrderPayload
-): Promise<ApiResponse<{ id: string; saved?: boolean }>> {
-  return apiFetch<{ id: string; saved?: boolean }>('createOrder', { order });
+export async function getCategories(options: { admin?: boolean } = {}) {
+  return apiFetch<Category[]>('getCategories', options);
 }
 
-export async function getOrders(): Promise<ApiResponse<OrderRecord[]>> {
+export async function addCategory(category: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>) {
+  return apiFetch<Category>('addCategory', { category });
+}
+
+export async function updateCategory(category: Category) {
+  return apiFetch<Category>('updateCategory', { category });
+}
+
+export async function deleteCategory(id: string) {
+  return apiFetch<null>('deleteCategory', { id });
+}
+
+export async function createOrder(order: OrderPayload) {
+  return apiFetch<{ id: string; saved?: boolean; notificationSent?: boolean }>('createOrder', { order });
+}
+
+export async function getOrders() {
   return apiFetch<OrderRecord[]>('getOrders');
 }
 
-export async function updateOrderStatus(
-  id: string,
-  estado: string
-): Promise<ApiResponse<OrderRecord>> {
+export async function updateOrderStatus(id: string, estado: string) {
   return apiFetch<OrderRecord>('updateOrderStatus', { id, estado });
 }
 
-export async function getPromotions(): Promise<ApiResponse<Promotion[]>> {
+export async function getPromotions() {
   return apiFetch<Promotion[]>('getPromotions');
 }
 
-export async function addPromotion(
-  promotion: Omit<Promotion, 'id'>
-): Promise<ApiResponse<Promotion>> {
+export async function addPromotion(promotion: Omit<Promotion, 'id'>) {
   return apiFetch<Promotion>('addPromotion', { promotion });
 }
 
-export async function updatePromotion(
-  promotion: Promotion
-): Promise<ApiResponse<Promotion>> {
+export async function updatePromotion(promotion: Promotion) {
   return apiFetch<Promotion>('updatePromotion', { promotion });
 }
 
-export async function deletePromotion(id: string): Promise<ApiResponse<null>> {
+export async function deletePromotion(id: string) {
   return apiFetch<null>('deletePromotion', { id });
 }
 
-export async function getConfig(): Promise<ApiResponse<StoreConfig>> {
+export async function getConfig() {
   return apiFetch<StoreConfig>('getConfig');
 }
 
-export async function updateConfig(
-  config: StoreConfig
-): Promise<ApiResponse<StoreConfig>> {
+export async function updateConfig(config: StoreConfig) {
   return apiFetch<StoreConfig>('updateConfig', { config });
 }
 
-export async function getSellers(): Promise<ApiResponse<Seller[]>> {
+export async function getSellers() {
   return apiFetch<Seller[]>('getSellers');
 }
 
-export async function addSeller(
-  seller: Omit<Seller, 'id' | 'fechaCreacion'>
-): Promise<ApiResponse<Seller>> {
+export async function addSeller(seller: Omit<Seller, 'id' | 'fechaCreacion'>) {
   return apiFetch<Seller>('addSeller', { seller });
 }
 
-export async function updateSeller(
-  seller: Seller
-): Promise<ApiResponse<Seller>> {
+export async function updateSeller(seller: Seller) {
   return apiFetch<Seller>('updateSeller', { seller });
+}
+
+export async function uploadMedia(files: File[], folder = 'products'): Promise<ApiResponse<{ urls: string[] }>> {
+  try {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+    formData.append('folder', folder);
+
+    const response = await fetch('/api/media', {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: formData,
+    });
+    return (await response.json()) as ApiResponse<{ urls: string[] }>;
+  } catch {
+    return { ok: false, message: 'No fue posible subir la imagen.' };
+  }
+}
+
+export async function deleteMedia(url: string): Promise<ApiResponse<null>> {
+  try {
+    const response = await fetch('/api/media', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ url }),
+    });
+    return (await response.json()) as ApiResponse<null>;
+  } catch {
+    return { ok: false, message: 'No fue posible eliminar la imagen del almacenamiento.' };
+  }
 }

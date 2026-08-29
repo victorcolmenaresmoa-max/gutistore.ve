@@ -1,68 +1,10 @@
-GUTISUPPLEMENTS — SISTEMA DE PEDIDOS POR VENDEDOR
-==================================================
+GUTISTORE — SISTEMA DE VENDEDORES / REFERIDOS
 
-QUÉ SE AGREGÓ
--------------
-1. Cada vendedor puede tener un enlace único con este formato:
-   https://TU-DOMINIO.com/?ref=CODIGO
-
-2. Cuando un cliente entra mediante ese enlace, el código se conserva durante
-   30 días en ese dispositivo. Si posteriormente realiza un pedido, Apps Script
-   valida el código y registra el vendedor en la fila del pedido.
-
-3. El panel administrativo incluye la pestaña "Vendedores", donde puedes:
-   - crear vendedores
-   - copiar el enlace de cada vendedor
-   - editar nombre o código
-   - activar o desactivar enlaces
-   - revisar pedidos, totales y estados por vendedor
-
-4. No se registran visitas. Solo se registra el vendedor cuando existe un pedido,
-   para mantener Google Sheets y Apps Script ligeros.
-
-PASOS OBLIGATORIOS EN APPS SCRIPT
----------------------------------
-1. Abre tu Apps Script actual.
-2. Antes de reemplazar el código, copia y conserva tus valores reales de:
-   - ADMIN_TOKEN
-   - SPREADSHEET_ID
-3. Reemplaza el contenido de Codigo.gs por el archivo incluido en:
-   google-apps-script/Codigo.gs
-4. Vuelve a colocar tus valores reales de ADMIN_TOKEN y SPREADSHEET_ID.
-5. Guarda el proyecto.
-6. Ejecuta una sola vez la función:
-   setupGutiSupplements
-7. Autoriza los permisos si Google los solicita.
-8. La función creará la pestaña "Vendedores" y añadirá a "Pedidos" las columnas:
-   - VendedorID
-   - VendedorCodigo
-   - VendedorNombre
-   No elimina ni modifica los pedidos existentes.
-9. Ve a Implementar > Administrar implementaciones.
-10. Edita la implementación actual del Web App, selecciona "Nueva versión" y
-    vuelve a implementar.
-11. Conserva la misma URL del Web App en NEXT_PUBLIC_GAS_URL de Vercel.
-
-PASOS EN GITHUB / VERCEL
-------------------------
-1. Sube los archivos del proyecto a GitHub.
-2. Espera el despliegue automático de Vercel o vuelve a desplegar manualmente.
-3. No necesitas crear variables de entorno nuevas.
-4. NEXT_PUBLIC_ADMIN_TOKEN debe seguir coincidiendo exactamente con ADMIN_TOKEN
-   dentro de Apps Script.
-
-CÓMO USARLO
------------
-1. Entra al panel administrativo.
-2. Abre la pestaña "Vendedores".
-3. Crea un vendedor.
-4. Pulsa "Copiar link" y envíale ese enlace.
-5. Los pedidos directos seguirán apareciendo normalmente, pero sin vendedor.
-6. Los pedidos realizados desde un enlace válido aparecerán también en
-   "Pedidos por vendedor".
-
-REGLA DE ATRIBUCIÓN
--------------------
-Se utiliza el último enlace de vendedor abierto por el cliente y se conserva
-por 30 días. Un vendedor desactivado deja de recibir pedidos nuevos mediante
-su enlace, pero sus pedidos históricos permanecen registrados.
+1. El administrador crea o edita vendedores desde /admin > Vendedores.
+2. Cada vendedor tiene un código único.
+3. Comparte la tienda con ?ref=CODIGO, por ejemplo:
+   https://tu-dominio.com/?ref=MARIA
+4. GutiStore guarda la atribución en el navegador durante 30 días.
+5. Si el cliente compra dentro de esa ventana, el código se envía al servidor y queda guardado en el pedido.
+6. Las claves antiguas guardadas por la versión anterior se migran automáticamente para no perder atribuciones existentes.
+7. Verifica el flujo después de cada migración haciendo un pedido de prueba desde un enlace de vendedor.

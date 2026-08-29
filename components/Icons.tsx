@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-type IconName =
+export type IconName =
   | 'bag'
   | 'arrowRight'
   | 'shield'
@@ -50,7 +50,8 @@ type IconName =
   | 'tag'
   | 'barChart'
   | 'layers'
-  | 'gift';
+  | 'gift'
+  | 'image';
 
 const iconPaths: Record<IconName, ReactNode> = {
   bag: <><path d="M6 8h12l-1 12H7L6 8Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></>,
@@ -103,6 +104,7 @@ const iconPaths: Record<IconName, ReactNode> = {
   barChart: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
   layers: <><path d="m12 3 9 5-9 5-9-5 9-5Z" /><path d="m3 13 9 5 9-5M3 17l9 5 9-5" /></>,
   gift: <><rect x="3" y="9" width="18" height="4" rx="1" /><path d="M5 13v8h14v-8M12 9v12" /><path d="M12 9C9 9 7 8 7 6a2 2 0 0 1 5-.5A2 2 0 0 1 17 6c0 2-2 3-5 3Z" /></>,
+  image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m4 17 5-5 4 4 2-2 5 5" /></>,
 };
 
 export default function Icon({

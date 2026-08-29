@@ -1,13 +1,16 @@
-export default function BrandLogo({ compact = false }: { compact?: boolean }) {
+import Image from 'next/image';
+
+export default function BrandLogo({ compact = false, className = '' }: { compact?: boolean; className?: string }) {
   return (
-    <span className={`brand-lockup ${compact ? 'brand-lockup-compact' : ''}`}>
-      <span className="brand-mark">
-        <img src="/guti-logo.png" alt="Logo de GutiSupplements" />
-      </span>
-      <span className="brand-copy">
-        <strong>Guti<span>Supplements</span></strong>
-        {!compact && <small>Performance · Wellness</small>}
-      </span>
+    <span className={`brand-lockup ${compact ? 'brand-lockup-compact' : ''} ${className}`.trim()}>
+      <Image
+        src="/guti-store-wordmark-compact.jpg"
+        alt="GutiStore"
+        width={800}
+        height={150}
+        priority
+        className="brand-logo-image"
+      />
     </span>
   );
 }

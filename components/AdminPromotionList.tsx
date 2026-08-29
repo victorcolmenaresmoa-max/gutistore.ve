@@ -49,10 +49,11 @@ export default function AdminPromotionList({
 
             return (
               <article className="admin-product-row" key={promotion.id}>
-                <img
-                  src={promotion.imagen || 'https://placehold.co/180x180/6d0b2f/ffffff?text=Oferta'}
-                  alt={promotion.titulo}
-                />
+                {promotion.imagen ? (
+                  <img src={promotion.imagen} alt={promotion.titulo} />
+                ) : (
+                  <div className="admin-product-image-placeholder" aria-label="Sin imagen"><Icon name="image" size={24} /></div>
+                )}
                 <div className="admin-product-main">
                   <div className="admin-product-title-row">
                     <div>

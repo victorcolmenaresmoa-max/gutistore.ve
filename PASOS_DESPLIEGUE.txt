@@ -1,68 +1,13 @@
-GUTISUPPLEMENTS — PASOS PARA PUBLICAR ESTA VERSIÓN
-==================================================
+GUTISTORE — DESPLIEGUE EN VERCEL
 
-1. CÓDIGO DEL SITIO
--------------------
-Reemplaza el contenido del proyecto por los archivos de este ZIP, haz commit y
-push. Vercel debería desplegar automáticamente el nuevo frontend.
-
-2. GOOGLE APPS SCRIPT — OBLIGATORIO
------------------------------------
-Sí, debes actualizar Apps Script.
-
-A. Abre el proyecto de Apps Script conectado a GutiSupplements.
-B. Reemplaza todo el contenido actual por google-apps-script/Codigo.gs.
-C. En las primeras líneas configura:
-   - ADMIN_TOKEN: exactamente el mismo valor de NEXT_PUBLIC_ADMIN_TOKEN en Vercel.
-   - SPREADSHEET_ID: el ID de la hoja correcta, ubicado entre /d/ y /edit en la URL.
-D. Guarda los cambios.
-E. Selecciona la función setupGutiSupplements y ejecútala una vez.
-F. Autoriza el acceso cuando Google lo solicite.
-G. Revisa el registro de ejecución: debe mostrar el nombre y URL de la hoja correcta.
-H. Ve a Implementar > Administrar implementaciones.
-I. Edita la implementación del Web App y selecciona “Nueva versión”.
-J. Ejecutar como: tu cuenta.
-K. Quién tiene acceso: cualquier usuario.
-L. Implementa y copia la URL que termina en /exec.
-M. Confirma que esa URL esté en Vercel como NEXT_PUBLIC_GAS_URL.
-N. Vuelve a desplegar Vercel después de cambiar variables.
-
-IMPORTANTE: editar Codigo.gs sin publicar una NUEVA VERSIÓN no actualiza el Web App.
-
-3. HOJA “Pedidos”
------------------
-No debes borrar ni reorganizar las columnas actuales.
-
-Tus columnas existentes pueden seguir así:
-ID | Fecha | Cliente | Direccion | Telefono | MetodoPago | Items | Total | Estado
-
-Al ejecutar setupGutiSupplements, el script añadirá al final las columnas faltantes:
-Email | Ubicacion | MetodoEntrega | Notas
-
-La estructura final puede conservar las columnas antiguas en su orden original. El
-script busca las columnas por nombre, no por posición, y no elimina pedidos previos.
-
-4. POR QUÉ ANTES NO APARECÍAN LOS PEDIDOS
------------------------------------------
-Si el frontend mostraba “pedido recibido” pero la fila no estaba en la hoja que
-revisabas, la causa más probable era una de estas:
-- SPREADSHEET_ID apuntaba a otra hoja.
-- NEXT_PUBLIC_GAS_URL apuntaba a una implementación antigua.
-- Se editó Apps Script, pero no se publicó una nueva versión.
-- El panel y el formulario estaban consultando despliegues diferentes.
-- ADMIN_TOKEN no coincidía, por lo que el panel no podía leer los pedidos.
-
-Esta versión verifica que la fila exista después de guardarla. Si no puede
-confirmarla, el cliente recibe un error en vez de una confirmación falsa.
-
-5. ACCESO INDIVIDUAL DE CLIENTES
---------------------------------
-No hace falta crear cuentas para cada comprador. Cada navegador mantiene su propio
-formulario y cada solicitud recibe un UUID único. LockService evita que pedidos
-simultáneos se escriban uno encima de otro. Solo el panel administrativo reúne todos
-los pedidos.
-
-Variables de Vercel necesarias:
-NEXT_PUBLIC_GAS_URL
-NEXT_PUBLIC_ADMIN_PASSWORD
-NEXT_PUBLIC_ADMIN_TOKEN
+1. Ejecuta el SQL: supabase/migrations/20260829_gutistore_multirubro.sql
+2. Sube la raíz del proyecto a GitHub.
+3. Importa el repositorio en Vercel.
+4. Configura las variables de .env.example en Vercel.
+5. Usa Node.js 24.x.
+6. Despliega.
+7. En /admin verifica categorías, productos, inventario, pedidos, promociones y vendedores.
+8. Prueba upload de imágenes.
+9. Realiza un pedido con y sin variantes.
+10. Realiza un pedido con ?ref=CODIGO y confirma la atribución.
+11. Si configuraste Resend, confirma que llegue el email del pedido y que “Ver pedido” abra el pedido correcto.

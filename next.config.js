@@ -2,27 +2,28 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    // Permitimos cualquier dominio de imagen porque el admin puede pegar
-    // URLs de imágenes de proveedores, Google Drive, Imgur, etc.
+    // Mantiene compatibilidad con imágenes heredadas externas. Las nuevas imágenes
+    // administradas desde GutiStore se guardan en Supabase Storage.
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
       { protocol: 'http', hostname: '**' },
     ],
-    // Formatos modernos para lo que sirve next/image.
     formats: ['image/avif', 'image/webp'],
   },
-
   async headers() {
     return [
       {
-        // Las fotos del hero no cambian de nombre, así que se pueden
-        // cachear un año entero. Si reemplazas una foto, cambia el
-        // nombre del archivo (creatina-v2.webp) para que el navegador
-        // la vuelva a pedir.
-        source: '/catalogo/:path*',
+        source: '/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
+      },
+      {
+        source: '/catalogo/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
     ];
   },
