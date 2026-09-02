@@ -493,11 +493,20 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        await supabaseRest<unknown>('configuracion', {
+        const updated = await supabaseRest<Array<{ clave: string }>>('configuracion', {
           method: 'PATCH',
           query: { clave: 'eq.TasaBs' },
           body: { valor: tasaBs },
+          prefer: 'return=representation',
         });
+
+        if (!updated?.length) {
+          await supabaseRest<unknown>('configuracion', {
+            method: 'POST',
+            body: { clave: 'TasaBs', valor: tasaBs },
+          });
+        }
+
         return json<StoreConfig>({ ok: true, data: { tasaBs } });
       }
 

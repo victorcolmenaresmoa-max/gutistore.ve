@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import SellerReferralTracker from '@/components/SellerReferralTracker';
+import ScrollReveal from '@/components/ScrollReveal';
+import ScrollProgress from '@/components/ScrollProgress';
+import BackToTop from '@/components/BackToTop';
+import { CurrencyProvider } from '@/context/CurrencyContext';
 
 export const metadata: Metadata = {
   title: 'GutiSupplements | Suplementos Premium',
@@ -15,7 +19,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body><SellerReferralTracker />{children}</body>
+      <body>
+        <SellerReferralTracker />
+        <ScrollProgress />
+        <ScrollReveal />
+        <CurrencyProvider>{children}</CurrencyProvider>
+        <BackToTop />
+      </body>
     </html>
   );
 }

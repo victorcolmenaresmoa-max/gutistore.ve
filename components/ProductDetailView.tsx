@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import { FALLBACK_PRODUCTS } from '@/lib/fallbackProducts';
 import { getProduct, getProducts } from '@/lib/api';
 import { Product } from '@/types';
-import { formatUSD } from '@/lib/currency';
+import { formatBs, formatUSD, hasRate } from '@/lib/currency';
+import { useCurrency } from '@/context/CurrencyContext';
 import Navbar from './Navbar';
 import CheckoutForm from './CheckoutForm';
 import Loader from './Loader';
@@ -34,6 +35,7 @@ export default function ProductDetailView({ productId }: { productId: string }) 
   const [activeInfoTab, setActiveInfoTab] = useState<ProductInfoTab>('beneficios');
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
+  const { rate } = useCurrency();
 
   const gallery = product
     ? Array.from(
@@ -71,19 +73,6 @@ export default function ProductDetailView({ productId }: { productId: string }) 
         return;
       }
 
-      const fallback = FALLBACK_PRODUCTS.find(
-        (item) => normalizeProductId(item.id) === requestedId
-      );
-
-      if (fallback) {
-        if (active) {
-          setProduct(fallback);
-          setQuantity(1);
-          setLoading(false);
-        }
-        return;
-      }
-
       const directResponse = await getProduct(productId);
       let foundProduct =
         directResponse.ok && directResponse.data ? directResponse.data : null;
@@ -96,6 +85,13 @@ export default function ProductDetailView({ productId }: { productId: string }) 
               (item) => normalizeProductId(item.id) === requestedId
             ) || null;
         }
+      }
+
+      if (!foundProduct) {
+        foundProduct =
+          FALLBACK_PRODUCTS.find(
+            (item) => normalizeProductId(item.id) === requestedId
+          ) || null;
       }
 
       if (active) {
@@ -256,6 +252,11 @@ export default function ProductDetailView({ productId }: { productId: string }) 
 
                 <div className="product-detail-price">
                   {formatUSD(product.precio)} <small>USD</small>
+                  {hasRate(rate) && (
+                    <span className="product-detail-price-bs">
+                      {formatBs(product.precio, rate)}
+                    </span>
+                  )}
                 </div>
 
                 <p className="product-long-description">{product.descripcion}</p>
@@ -273,7 +274,14 @@ export default function ProductDetailView({ productId }: { productId: string }) 
                       <span>Cantidad</span>
                       <small>Selecciona cuántas unidades deseas</small>
                     </div>
-                    <strong>{formatUSD(product.precio * quantity)} USD</strong>
+                    <strong>
+                      {formatUSD(product.precio * quantity)} USD
+                      {hasRate(rate) && (
+                        <span className="subtotal-bs">
+                          {formatBs(product.precio * quantity, rate)}
+                        </span>
+                      )}
+                    </strong>
                   </div>
 
                   <div className="direct-order-controls">
