@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import { Product } from '@/types';
 import Icon from './Icons';
-import { formatUSD } from '@/lib/currency';
+import { formatBs, formatUSD, hasRate } from '@/lib/currency';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export default function ProductCard({ product }: { product: Product }) {
   const productUrl = `/producto/${encodeURIComponent(product.id)}`;
+  const { rate } = useCurrency();
 
   return (
-    <article className="product-card">
+    <article className="product-card" data-reveal>
       <Link href={productUrl} className="product-card-link">
         <div className="product-media">
           <img
@@ -35,7 +37,12 @@ export default function ProductCard({ product }: { product: Product }) {
               <h3>{product.nombre}</h3>
               {product.presentacion && <span>{product.presentacion}</span>}
             </div>
-            <div className="product-price">{formatUSD(product.precio)}</div>
+            <div className="product-price">
+              {formatUSD(product.precio)}
+              {hasRate(rate) && (
+                <span className="product-price-bs">{formatBs(product.precio, rate)}</span>
+              )}
+            </div>
           </div>
 
           <p>{product.descripcion}</p>

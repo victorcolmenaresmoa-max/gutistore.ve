@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Promotion } from '@/types';
 import Icon from './Icons';
-import { formatUSD } from '@/lib/currency';
+import { formatBs, formatUSD, hasRate } from '@/lib/currency';
+import { useCurrency } from '@/context/CurrencyContext';
 
 interface Props {
   promotion: Promotion;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function PromotionCard({ promotion, onRequest }: Props) {
+  const { rate } = useCurrency();
   const gallery = Array.from(
     new Set(
       [promotion.imagen, ...(promotion.imagenes || [])]
@@ -36,7 +38,7 @@ export default function PromotionCard({ promotion, onRequest }: Props) {
     : 0;
 
   return (
-    <article className="promo-card">
+    <article className="promo-card" data-reveal>
       <div className="promo-media">
         <img
           src={
@@ -92,7 +94,14 @@ export default function PromotionCard({ promotion, onRequest }: Props) {
               <span className="promo-price-old">{formatUSD(promotion.precioRegular as number)}</span>
             )}
           </div>
-          <span className="promo-price-note">El pago y cualquier equivalente en Bs se coordinan por WhatsApp.</span>
+          {hasRate(rate) && (
+            <span className="promo-price-bs">{formatBs(promotion.precio, rate)}</span>
+          )}
+          <span className="promo-price-note">
+            {hasRate(rate)
+              ? 'Equivalente en Bs según la tasa vigente. El método de pago se coordina por WhatsApp.'
+              : 'El pago y cualquier equivalente en Bs se coordinan por WhatsApp.'}
+          </span>
         </div>
 
         <button className="btn btn-primary btn-block" onClick={() => onRequest(promotion)}>

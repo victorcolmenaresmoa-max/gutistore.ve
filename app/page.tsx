@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import ProductCard from '@/components/ProductCard';
 import PromotionsSection from '@/components/PromotionsSection';
 import Loader from '@/components/Loader';
 import HeroProductMarquee from '@/components/HeroProductMarquee';
 import Icon from '@/components/Icons';
+import CountUp from '@/components/CountUp';
 import { getProducts } from '@/lib/api';
 import { FALLBACK_PRODUCTS } from '@/lib/fallbackProducts';
 import { Product } from '@/types';
@@ -190,15 +192,15 @@ export default function HomePage() {
         {/* ============ TRUST STRIP ============ */}
         <section className="trust-strip" id="experiencia">
           <div className="container trust-strip-grid">
-            <article>
+            <article data-reveal>
               <span><Icon name="shield" size={23} /></span>
               <div><strong>Selección responsable</strong><p>Información transparente para elegir con mayor confianza.</p></div>
             </article>
-            <article>
+            <article data-reveal>
               <span><Icon name="message" size={23} /></span>
               <div><strong>Atención personalizada</strong><p>Un asesor revisa tu solicitud antes de confirmar la compra.</p></div>
             </article>
-            <article>
+            <article data-reveal>
               <span><Icon name="truck" size={23} /></span>
               <div><strong>Entrega coordinada</strong><p>Disponibilidad, ubicación y método de envío se validan contigo.</p></div>
             </article>
@@ -209,7 +211,7 @@ export default function HomePage() {
         {featured.length > 0 && (
           <section className="section featured-section">
             <div className="container">
-              <div className="section-heading">
+              <div className="section-heading" data-reveal>
                 <div>
                   <span className="eyebrow"><Icon name="flame" size={13} /> Los más buscados</span>
                   <h2>Destacados de la temporada</h2>
@@ -232,7 +234,7 @@ export default function HomePage() {
         {/* ============ CATALOG ============ */}
         <section className="section catalog-section" id="catalogo">
           <div className="container">
-            <div className="section-heading">
+            <div className="section-heading" data-reveal>
               <div>
                 <span className="eyebrow"><Icon name="products" size={13} /> Colección GutiSupplements</span>
                 <h2>Encuentra tu próximo aliado</h2>
@@ -297,9 +299,9 @@ export default function HomePage() {
           </div>
           <div className="container stats-grid">
             {STATS.map((stat) => (
-              <article key={stat.label}>
+              <article key={stat.label} data-reveal>
                 <span className="stats-icon"><Icon name={stat.icon} size={22} /></span>
-                <strong>{stat.value}</strong>
+                <strong><CountUp value={stat.value} /></strong>
                 <small>{stat.label}</small>
               </article>
             ))}
@@ -309,7 +311,7 @@ export default function HomePage() {
         {/* ============ BENEFITS ============ */}
         <section className="section benefits-section">
           <div className="container">
-            <div className="section-heading center">
+            <div className="section-heading center" data-reveal>
               <div>
                 <span className="eyebrow"><Icon name="heart" size={13} /> Nuestra promesa</span>
                 <h2>Todo lo que hace distinta tu compra</h2>
@@ -317,8 +319,13 @@ export default function HomePage() {
               </div>
             </div>
             <div className="benefits-grid">
-              {BENEFITS.map((benefit) => (
-                <article className="benefit-card" key={benefit.title}>
+              {BENEFITS.map((benefit, index) => (
+                <article
+                  className="benefit-card"
+                  key={benefit.title}
+                  data-reveal
+                  style={{ transitionDelay: `${index * 70}ms` }}
+                >
                   <span className="benefit-icon"><Icon name={benefit.icon} size={22} /></span>
                   <h3>{benefit.title}</h3>
                   <p>{benefit.text}</p>
@@ -331,7 +338,7 @@ export default function HomePage() {
         {/* ============ TESTIMONIALS ============ */}
         <section className="section testimonials-section">
           <div className="container">
-            <div className="section-heading center">
+            <div className="section-heading center" data-reveal>
               <div>
                 <span className="eyebrow"><Icon name="quote" size={13} /> Voces reales</span>
                 <h2>Lo que dicen quienes ya nos eligieron</h2>
@@ -339,8 +346,13 @@ export default function HomePage() {
               </div>
             </div>
             <div className="testimonials-grid">
-              {TESTIMONIALS.map((testimonial) => (
-                <article className="testimonial-card" key={testimonial.name}>
+              {TESTIMONIALS.map((testimonial, index) => (
+                <article
+                  className="testimonial-card"
+                  key={testimonial.name}
+                  data-reveal
+                  style={{ transitionDelay: `${index * 90}ms` }}
+                >
                   <span className="testimonial-quote-mark"><Icon name="quote" size={26} /></span>
                   <div className="testimonial-stars" aria-hidden="true">
                     {[0, 1, 2, 3, 4].map((star) => (
@@ -364,7 +376,7 @@ export default function HomePage() {
         {/* ============ ADVISORY ============ */}
         <section className="section advisory-section" id="asesoria">
           <div className="container advisory-grid">
-            <div className="advisory-visual">
+            <div className="advisory-visual" data-reveal>
               <div className="advisory-monogram">GS</div>
               <img className="advisory-scoop" src="/art/scoop.svg" alt="" aria-hidden="true" />
               <div className="advisory-card">
@@ -379,7 +391,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="advisory-content">
+            <div className="advisory-content" data-reveal>
               <span className="eyebrow"><Icon name="message" size={13} /> Una experiencia más humana</span>
               <h2>No solo compras un producto. Recibes acompañamiento.</h2>
               <p>
@@ -400,9 +412,9 @@ export default function HomePage() {
         </section>
 
         {/* ============ FAQ ============ */}
-        <section className="section faq-section">
+        <section className="section faq-section" id="faq">
           <div className="container faq-grid">
-            <div className="faq-intro">
+            <div className="faq-intro" data-reveal>
               <span className="eyebrow"><Icon name="message" size={13} /> Preguntas frecuentes</span>
               <h2>Resolvemos tus dudas antes de empezar</h2>
               <p>Si algo no aparece aquí, escríbenos por WhatsApp y te ayudamos personalmente.</p>
@@ -410,7 +422,13 @@ export default function HomePage() {
             </div>
             <div className="faq-list">
               {FAQ.map((item, index) => (
-                <details className="faq-item" key={item.q} open={index === 0}>
+                <details
+                  className="faq-item"
+                  key={item.q}
+                  open={index === 0}
+                  data-reveal
+                  style={{ transitionDelay: `${index * 60}ms` }}
+                >
                   <summary>
                     <span>{item.q}</span>
                     <span className="faq-toggle"><Icon name="chevronDown" size={18} /></span>
@@ -427,7 +445,7 @@ export default function HomePage() {
           <div className="cta-band-orb cta-orb-one" />
           <div className="cta-band-orb cta-orb-two" />
           <img className="cta-band-molecule" src="/art/molecule.svg" alt="" aria-hidden="true" />
-          <div className="container cta-band-inner">
+          <div className="container cta-band-inner" data-reveal>
             <span className="eyebrow"><Icon name="sparkles" size={13} /> Da el primer paso</span>
             <h2>¿Listo para elegir tu próximo suplemento?</h2>
             <p>Explora el catálogo, envía tu solicitud y deja que nuestro equipo se encargue del resto.</p>
@@ -461,8 +479,8 @@ export default function HomePage() {
           <div className="footer-col">
             <h4>Tienda</h4>
             <a href="#catalogo">Catálogo completo</a>
-            <a href="#catalogo">Destacados</a>
-            <a href="#catalogo">Categorías</a>
+            <a href="#ofertas">Ofertas y combos</a>
+            <Link href="/creatina">Creatina monohidratada</Link>
           </div>
 
           <div className="footer-col">

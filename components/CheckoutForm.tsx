@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createOrder } from '@/lib/api';
 import { Product } from '@/types';
-import { formatUSD } from '@/lib/currency';
+import { formatBs, formatUSD, hasRate } from '@/lib/currency';
+import { useCurrency } from '@/context/CurrencyContext';
 import { getStoredSellerReferral } from '@/lib/referral';
 import Icon from './Icons';
 
@@ -29,6 +30,7 @@ export default function CheckoutForm({ product, quantity, onClose }: CheckoutFor
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successId, setSuccessId] = useState('');
+  const { rate } = useCurrency();
 
   const total = useMemo(() => product.precio * quantity, [product.precio, quantity]);
   const needsAddress = form.metodoEntrega !== 'Retiro coordinado';
@@ -119,10 +121,11 @@ export default function CheckoutForm({ product, quantity, onClose }: CheckoutFor
             />
             <div>
               <strong>{product.nombre}</strong>
-              <span>{quantity} × ${product.precio.toFixed(2)}</span>
+              <span>{quantity} × {formatUSD(product.precio)}</span>
             </div>
             <b>
               {formatUSD(total)} USD
+              {hasRate(rate) && <span className="summary-bs">{formatBs(total, rate)}</span>}
             </b>
           </div>
           <button className="btn btn-primary btn-block" onClick={onClose}>
@@ -166,12 +169,15 @@ export default function CheckoutForm({ product, quantity, onClose }: CheckoutFor
               <div>
                 <h4>{product.nombre}</h4>
                 {product.presentacion && <p>{product.presentacion}</p>}
-                <span>{quantity} unidad{quantity === 1 ? '' : 'es'} × ${product.precio.toFixed(2)}</span>
+                <span>{quantity} unidad{quantity === 1 ? '' : 'es'} × {formatUSD(product.precio)}</span>
               </div>
             </div>
             <div className="direct-product-total">
               <span>Total estimado</span>
-              <strong>${total.toFixed(2)} <small>USD</small></strong>
+              <strong>
+                {formatUSD(total)} <small>USD</small>
+                {hasRate(rate) && <span className="summary-bs">{formatBs(total, rate)}</span>}
+              </strong>
             </div>
             <div className="direct-product-note">
               <Icon name="shield" size={18} />

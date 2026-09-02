@@ -7,6 +7,7 @@ import AdminPromotionForm from '@/components/AdminPromotionForm';
 import AdminPromotionList from '@/components/AdminPromotionList';
 import AdminOrderList from '@/components/AdminOrderList';
 import AdminSellerDashboard, { SellerSaveInput } from '@/components/AdminSellerDashboard';
+import AdminRateControl from '@/components/AdminRateControl';
 import BrandLogo from '@/components/BrandLogo';
 import Loader from '@/components/Loader';
 import Icon from '@/components/Icons';
@@ -19,10 +20,12 @@ import {
   addSeller,
   deleteProduct,
   deletePromotion,
+  getConfig,
   getOrders,
   getProducts,
   getPromotions,
   getSellers,
+  updateConfig,
   updateOrderStatus,
   updateProduct,
   updatePromotion,
@@ -30,7 +33,7 @@ import {
 } from '@/lib/api';
 import { OrderRecord, Product, Promotion, Seller } from '@/types';
 
-type AdminTab = 'orders' | 'products' | 'promotions' | 'sellers';
+type AdminTab = 'orders' | 'products' | 'promotions' | 'sellers' | 'settings';
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -44,6 +47,7 @@ export default function AdminPage() {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [sellers, setSellers] = useState<Seller[]>([]);
+  const [rate, setRate] = useState(0);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingPromotions, setLoadingPromotions] = useState(true);
@@ -79,6 +83,7 @@ export default function AdminPage() {
       void loadOrders();
       void loadPromotions();
       void loadSellers();
+      void loadRate();
     }
   }, [authenticated]);
 
@@ -124,6 +129,26 @@ export default function AdminPage() {
       setGlobalError(response.message);
     }
     setLoadingSellers(false);
+  };
+
+  const loadRate = async () => {
+    const response = await getConfig();
+    if (response.ok && response.data) {
+      setRate(Number(response.data.tasaBs) || 0);
+    }
+  };
+
+  const handleSaveRate = async (value: number) => {
+    setGlobalError('');
+    const response = await updateConfig({ tasaBs: value });
+
+    if (response.ok && response.data) {
+      setRate(Number(response.data.tasaBs) || 0);
+      return true;
+    }
+
+    setGlobalError(response.message || 'No se pudo guardar la tasa de cambio.');
+    return false;
   };
 
   const handleLogin = async (event: React.FormEvent) => {
@@ -354,6 +379,10 @@ export default function AdminPage() {
             <span>Ofertas</span>
             <b>{promotions.length}</b>
           </button>
+          <button className={activeTab === 'settings' ? 'active' : ''} onClick={() => setActiveTab('settings')}>
+            <Icon name="dollar" size={19} />
+            <span>Ajustes</span>
+          </button>
         </nav>
 
         <div className="admin-sidebar-card">
@@ -387,6 +416,8 @@ export default function AdminPage() {
                 ? 'Ventas por vendedor'
                 : activeTab === 'promotions'
                 ? 'Gestión de ofertas'
+                : activeTab === 'settings'
+                ? 'Ajustes de la tienda'
                 : 'Gestión del catálogo'}
             </h1>
           </div>
@@ -397,6 +428,7 @@ export default function AdminPage() {
                 if (activeTab === 'orders') void loadOrders();
                 else if (activeTab === 'sellers') { void loadSellers(); void loadOrders(); }
                 else if (activeTab === 'promotions') void loadPromotions();
+                else if (activeTab === 'settings') void loadRate();
                 else void loadProducts();
               }}
             >
@@ -424,6 +456,8 @@ export default function AdminPage() {
                   ? 'Tus ventas, asociadas al vendedor correcto'
                   : activeTab === 'promotions'
                   ? 'Tus ofertas, listas para publicar'
+                  : activeTab === 'settings'
+                  ? 'La tasa de cambio, siempre al día'
                   : 'Tu catálogo, siempre ordenado'}
               </h2>
               <p>Revisa los indicadores clave y gestiona todo desde un mismo panel.</p>
@@ -470,6 +504,8 @@ export default function AdminPage() {
                 onToggle={handleToggleSeller}
               />
             )
+          ) : activeTab === 'settings' ? (
+            <AdminRateControl rate={rate} onSave={handleSaveRate} />
           ) : activeTab === 'promotions' ? (
             <div className="admin-products-layout">
               <div className="admin-promotions-side">
