@@ -1,0 +1,353 @@
+/* =========================================================
+   Página /creatina · estilos propios
+   Todas las clases empiezan por "cst-" para que no choquen
+   con los estilos de la tienda (globals.css).
+   ========================================================= */
+
+.cst {
+  --cst-negro-950: #070707;
+  --cst-negro-900: #141414;
+  --cst-rojo-600: #b3121e;
+  --cst-acento: #fc1d2d;
+  --cst-acento-claro: #ff6b75;
+  --cst-claro: #f5f5f5;
+  --cst-apagado: #9a9a9a;
+
+  --cst-display: Anton, "Arial Narrow", Impact, sans-serif;
+  --cst-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  position: relative;
+  background: var(--cst-negro-950);
+  color: var(--cst-claro);
+  font-size: 17px;
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+
+.cst img {
+  display: block;
+  max-width: 100%;
+}
+
+/* ---------- Riel lateral ---------- */
+.cst-riel {
+  position: fixed;
+  top: var(--header-h, 68px);
+  left: 0;
+  width: 64px;
+  height: calc(100vh - var(--header-h, 68px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 0;
+  border-right: 1px solid rgba(252, 29, 45, 0.18);
+  background: linear-gradient(180deg, rgba(7, 7, 7, 0.9), rgba(7, 7, 7, 0.35));
+  z-index: 20;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+.cst-riel__formula,
+.cst-riel__marca {
+  font-family: var(--cst-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--cst-acento);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  white-space: nowrap;
+}
+.cst-riel__marca { color: var(--cst-apagado); }
+.cst-riel__barra {
+  flex: 1;
+  width: 1px;
+  margin: 22px 0;
+  background: rgba(252, 29, 45, 0.2);
+  position: relative;
+}
+.cst-riel__progreso {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: var(--cst-acento);
+}
+
+/* ---------- Portada ---------- */
+.cst-portada {
+  min-height: calc(100svh - var(--header-h, 68px));
+  display: flex;
+  align-items: center;
+  padding: 12vh 6vw 12vh calc(64px + 6vw);
+  position: relative;
+  overflow: hidden;
+}
+.cst-portada::after {
+  content: "";
+  position: absolute;
+  right: -18vw;
+  top: 50%;
+  width: 70vw;
+  height: 70vw;
+  transform: translateY(-50%);
+  background: radial-gradient(circle, rgba(179, 18, 30, 0.35) 0%, rgba(7, 7, 7, 0) 62%);
+  pointer-events: none;
+}
+.cst-portada__interior {
+  max-width: 1240px;
+  position: relative;
+  z-index: 1;
+}
+
+.cst-eyebrow {
+  font-family: var(--cst-mono);
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--cst-acento);
+  margin: 0 0 22px;
+}
+
+.cst-portada__titulo {
+  font-family: var(--cst-display);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 9.4vw, 8rem);
+  line-height: 0.86;
+  text-transform: uppercase;
+  margin: 0 0 32px;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+.cst-portada__titulo span { display: block; }
+.cst-portada__titulo--oro {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--cst-acento);
+}
+.cst-portada__bajada {
+  max-width: 52ch;
+  font-size: clamp(1rem, 1.5vw, 1.22rem);
+  color: #e2e2e2;
+  margin: 0 0 46px;
+}
+.cst-portada__scroll {
+  font-family: var(--cst-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cst-apagado);
+  margin: 0;
+}
+.cst-portada__scroll::before {
+  content: "";
+  display: inline-block;
+  width: 52px;
+  height: 1px;
+  background: var(--cst-acento);
+  vertical-align: middle;
+  margin-right: 14px;
+}
+
+/* ---------- Capítulos ---------- */
+.cst-capitulo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(32px, 6vw, 96px);
+  align-items: center;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 16vh 6vw 16vh calc(64px + 6vw);
+}
+.cst-capitulo--invertido .cst-capitulo__texto { order: 2; }
+.cst-capitulo--invertido .cst-figura { order: 1; }
+
+.cst-titulo {
+  font-family: var(--cst-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 4.2vw, 3.6rem);
+  line-height: 0.98;
+  text-transform: uppercase;
+  margin: 0 0 26px;
+  overflow-wrap: break-word;
+}
+.cst-parrafo {
+  color: #d4d4d4;
+  max-width: 46ch;
+  margin: 0 0 20px;
+}
+
+/* Ficha de datos */
+.cst-datos {
+  margin: 34px 0 0;
+  border-top: 1px solid rgba(252, 29, 45, 0.22);
+}
+.cst-datos__fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(252, 29, 45, 0.14);
+}
+.cst-datos dt {
+  font-family: var(--cst-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cst-apagado);
+}
+.cst-datos dd {
+  margin: 0;
+  font-family: var(--cst-mono);
+  font-size: 14px;
+  color: var(--cst-acento-claro);
+}
+
+/* Lista del scoop */
+.cst-lista {
+  list-style: none;
+  margin: 32px 0 0;
+  padding: 0;
+}
+.cst-lista li {
+  padding: 14px 0 14px 20px;
+  border-left: 2px solid var(--cst-rojo-600);
+  margin-bottom: 12px;
+  color: #d4d4d4;
+  font-size: 16px;
+}
+.cst-lista span {
+  display: block;
+  font-family: var(--cst-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cst-acento);
+  margin-bottom: 4px;
+}
+
+/* Beneficios */
+.cst-beneficios {
+  display: grid;
+  gap: 2px;
+  margin: 34px 0 0;
+  background: rgba(252, 29, 45, 0.16);
+  border: 1px solid rgba(252, 29, 45, 0.16);
+}
+.cst-beneficio {
+  background: var(--cst-negro-950);
+  padding: 22px 20px;
+}
+.cst-beneficio__num {
+  display: block;
+  font-family: var(--cst-display);
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--cst-acento);
+  margin-bottom: 8px;
+}
+.cst-beneficio p {
+  margin: 0;
+  font-size: 15.5px;
+  color: #d4d4d4;
+}
+
+.cst-nota {
+  margin: 28px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--cst-apagado);
+  border-top: 1px solid rgba(252, 29, 45, 0.14);
+  padding-top: 18px;
+  max-width: 52ch;
+}
+
+/* ---------- Figuras animadas ---------- */
+.cst-figura { margin: 0; }
+.cst-figura__marco {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background: var(--cst-negro-900);
+  border: 1px solid rgba(252, 29, 45, 0.22);
+}
+.cst-figura--claro .cst-figura__marco {
+  background: linear-gradient(180deg, #ffffff 0%, #f1f1f1 100%);
+}
+.cst-figura__media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform, opacity;
+  opacity: 0;
+}
+.cst-figura--claro .cst-figura__media {
+  object-fit: contain;
+  padding: 6%;
+}
+.cst-figura__pie {
+  font-family: var(--cst-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cst-apagado);
+  margin-top: 14px;
+}
+
+/* ---------- Cierre / llamada al catálogo ---------- */
+.cst-cierre {
+  text-align: center;
+  padding: 12vh 6vw 14vh calc(64px + 6vw);
+  border-top: 1px solid rgba(252, 29, 45, 0.16);
+}
+.cst-cierre__titulo {
+  font-family: var(--cst-display);
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  text-transform: uppercase;
+  margin: 0 0 18px;
+}
+.cst-cierre__texto {
+  color: #d4d4d4;
+  max-width: 46ch;
+  margin: 0 auto 34px;
+}
+.cst-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 34px;
+  border: 1px solid var(--cst-acento);
+  color: var(--cst-acento-claro);
+  text-decoration: none;
+  font-family: var(--cst-mono);
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+.cst-boton:hover,
+.cst-boton:focus-visible {
+  background: var(--cst-acento);
+  color: var(--cst-negro-950);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .cst-riel { display: none; }
+  .cst-portada { padding: 12vh 7vw; }
+  .cst-capitulo {
+    grid-template-columns: 1fr;
+    padding: 11vh 7vw;
+    gap: 44px;
+  }
+  .cst-capitulo--invertido .cst-capitulo__texto,
+  .cst-capitulo--invertido .cst-figura { order: initial; }
+  .cst-figura__marco { aspect-ratio: 1 / 1; }
+  .cst-cierre { padding: 10vh 7vw 12vh; }
+}
+
+/* ---------- Accesibilidad ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .cst-figura__media { opacity: 1; }
+}
