@@ -83,14 +83,12 @@ async function main() {
     const aviso = info.size > 45 * 1024 ? '  ← pesa de más, baja la calidad a 75' : '';
     console.log(`  ${foto}  →  ${salida}  (${kb} KB)${aviso}`);
 
-    lineas.push(
-      `  { src: '/catalogo/${salida}', alt: 'DESCRIBE EL PRODUCTO AQUÍ', width: ${ANCHO}, height: ${ALTO} },`
-    );
+    lineas.push(`  /catalogo/${salida}`);
   }
 
   console.log('\n------------------------------------------------------------');
-  console.log('Copia esto dentro de HERO_SHOWCASE en lib/heroShowcase.ts');
-  console.log('(y reemplaza el texto alt por el nombre real del producto):\n');
+  console.log('Fotos listas. Pega estas rutas en el panel (/admin → Productos →');
+  console.log('Imagen principal o Galería) del producto correspondiente:\n');
   console.log(lineas.join('\n'));
   console.log('\n------------------------------------------------------------\n');
 }

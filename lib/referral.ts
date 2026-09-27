@@ -1,4 +1,6 @@
-const SELLER_REFERRAL_KEY = 'guti-supplements-seller-referral';
+const SELLER_REFERRAL_KEY = 'gutistore-seller-referral';
+/** Clave usada por la versión anterior de la tienda (se sigue leyendo para no perder referidos vigentes). */
+const LEGACY_REFERRAL_KEY = 'guti-supplements-seller-referral';
 const ATTRIBUTION_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface StoredSellerReferral {
@@ -40,7 +42,8 @@ export function getStoredSellerReferral(): string {
   if (typeof window === 'undefined') return '';
 
   try {
-    const raw = window.localStorage.getItem(SELLER_REFERRAL_KEY);
+    const raw =
+      window.localStorage.getItem(SELLER_REFERRAL_KEY) || window.localStorage.getItem(LEGACY_REFERRAL_KEY);
     if (!raw) return '';
 
     const parsed = JSON.parse(raw) as Partial<StoredSellerReferral>;
@@ -49,6 +52,7 @@ export function getStoredSellerReferral(): string {
 
     if (!code || expiresAt <= Date.now()) {
       window.localStorage.removeItem(SELLER_REFERRAL_KEY);
+      window.localStorage.removeItem(LEGACY_REFERRAL_KEY);
       return '';
     }
 

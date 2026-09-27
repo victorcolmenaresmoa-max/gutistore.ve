@@ -386,11 +386,11 @@ export default function CreatinaScrollTelling() {
       <section className="cst-cierre">
         <h2 className="cst-cierre__titulo">¿La quieres en tu rutina?</h2>
         <p className="cst-cierre__texto">
-          Revisa la disponibilidad y los precios en el catálogo. Un asesor confirma stock y entrega
+          Revisa la disponibilidad y los precios en la tienda. Un asesor confirma stock y entrega
           antes de que pagues nada.
         </p>
-        <Link href="/#catalogo" className="cst-boton">
-          Ver el catálogo
+        <Link href="/tienda?categoria=Suplementos" className="cst-boton">
+          Ver suplementos
         </Link>
       </section>
     </div>

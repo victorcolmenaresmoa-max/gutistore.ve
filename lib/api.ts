@@ -1,17 +1,19 @@
-import {
+import type {
   ApiResponse,
+  Category,
+  CategoryInput,
+  CreatedOrder,
   OrderPayload,
   OrderRecord,
   Product,
+  ProductInput,
   Promotion,
   Seller,
   StoreConfig,
 } from '@/types';
+import { normalizeProduct } from './product';
 
-async function apiFetch<T>(
-  action: string,
-  body: Record<string, unknown> = {}
-): Promise<ApiResponse<T>> {
+async function apiFetch<T>(action: string, body: Record<string, unknown> = {}): Promise<ApiResponse<T>> {
   try {
     const response = await fetch('/api/store', {
       method: 'POST',
@@ -26,24 +28,34 @@ async function apiFetch<T>(
       return { ok: false, message: `Error HTTP ${response.status}` };
     }
     return payload;
-  } catch (error) {
-    console.error('Error al llamar a la API interna:', error);
+  } catch {
     return {
       ok: false,
-      message:
-        'No se pudo conectar con el servidor de la tienda. Verifica la conexión y las variables de Supabase en Vercel.',
+      message: 'No se pudo conectar con la tienda. Revisa tu conexión e inténtalo de nuevo.',
     };
   }
 }
 
-export async function checkAdminSession(): Promise<
-  ApiResponse<{ authenticated: boolean }>
-> {
+function mapProducts(response: ApiResponse<Product[]>): ApiResponse<Product[]> {
+  return response.ok && Array.isArray(response.data)
+    ? { ...response, data: response.data.map(normalizeProduct) }
+    : response;
+}
+
+function mapProduct(response: ApiResponse<Product>): ApiResponse<Product> {
+  return response.ok && response.data ? { ...response, data: normalizeProduct(response.data) } : response;
+}
+
+/* ---------- Sesión administrativa ---------- */
+
+async function sessionRequest(method: 'GET' | 'POST' | 'DELETE', body?: unknown) {
   try {
     const response = await fetch('/api/admin/session', {
-      method: 'GET',
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
       credentials: 'same-origin',
       cache: 'no-store',
+      body: body ? JSON.stringify(body) : undefined,
     });
     return (await response.json()) as ApiResponse<{ authenticated: boolean }>;
   } catch {
@@ -51,117 +63,60 @@ export async function checkAdminSession(): Promise<
   }
 }
 
-export async function adminLogin(
-  password: string
-): Promise<ApiResponse<{ authenticated: boolean }>> {
-  try {
-    const response = await fetch('/api/admin/session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ password }),
-    });
-    return (await response.json()) as ApiResponse<{ authenticated: boolean }>;
-  } catch {
-    return { ok: false, message: 'No se pudo iniciar sesión.' };
-  }
+export const checkAdminSession = () => sessionRequest('GET');
+export const adminLogin = (password: string) => sessionRequest('POST', { password });
+export const adminLogout = () => sessionRequest('DELETE');
+
+/* ---------- Productos ---------- */
+
+export async function getProducts(scope: 'public' | 'admin' = 'public') {
+  return mapProducts(await apiFetch<Product[]>('getProducts', { scope }));
 }
 
-export async function adminLogout(): Promise<ApiResponse<{ authenticated: boolean }>> {
-  try {
-    const response = await fetch('/api/admin/session', {
-      method: 'DELETE',
-      credentials: 'same-origin',
-    });
-    return (await response.json()) as ApiResponse<{ authenticated: boolean }>;
-  } catch {
-    return { ok: false, message: 'No se pudo cerrar la sesión.' };
-  }
+export async function getProduct(id: string, scope: 'public' | 'admin' = 'public') {
+  return mapProduct(await apiFetch<Product>('getProduct', { id, scope }));
 }
 
-export async function getProducts(): Promise<ApiResponse<Product[]>> {
-  return apiFetch<Product[]>('getProducts');
+export async function addProduct(product: ProductInput) {
+  return mapProduct(await apiFetch<Product>('addProduct', { product }));
 }
 
-export async function getProduct(id: string): Promise<ApiResponse<Product>> {
-  return apiFetch<Product>('getProduct', { id });
+export async function updateProduct(product: ProductInput & { id: string }) {
+  return mapProduct(await apiFetch<Product>('updateProduct', { product }));
 }
 
-export async function addProduct(
-  product: Omit<Product, 'id'>
-): Promise<ApiResponse<Product>> {
-  return apiFetch<Product>('addProduct', { product });
-}
+export const deleteProduct = (id: string) => apiFetch<null>('deleteProduct', { id });
 
-export async function updateProduct(
-  product: Product
-): Promise<ApiResponse<Product>> {
-  return apiFetch<Product>('updateProduct', { product });
-}
+/* ---------- Categorías ---------- */
 
-export async function deleteProduct(id: string): Promise<ApiResponse<null>> {
-  return apiFetch<null>('deleteProduct', { id });
-}
+export const getCategories = () => apiFetch<Category[]>('getCategories');
+export const addCategory = (category: CategoryInput) => apiFetch<Category>('addCategory', { category });
+export const updateCategory = (category: CategoryInput & { id: string }) =>
+  apiFetch<Category>('updateCategory', { category });
+export const deleteCategory = (id: string) => apiFetch<null>('deleteCategory', { id });
 
-export async function createOrder(
-  order: OrderPayload
-): Promise<ApiResponse<{ id: string; saved?: boolean }>> {
-  return apiFetch<{ id: string; saved?: boolean }>('createOrder', { order });
-}
+/* ---------- Pedidos ---------- */
 
-export async function getOrders(): Promise<ApiResponse<OrderRecord[]>> {
-  return apiFetch<OrderRecord[]>('getOrders');
-}
+export const createOrder = (order: OrderPayload) => apiFetch<CreatedOrder>('createOrder', { order });
+export const getOrders = () => apiFetch<OrderRecord[]>('getOrders');
+export const updateOrderStatus = (id: string, estado: string) =>
+  apiFetch<OrderRecord>('updateOrderStatus', { id, estado });
 
-export async function updateOrderStatus(
-  id: string,
-  estado: string
-): Promise<ApiResponse<OrderRecord>> {
-  return apiFetch<OrderRecord>('updateOrderStatus', { id, estado });
-}
+/* ---------- Promociones ---------- */
 
-export async function getPromotions(): Promise<ApiResponse<Promotion[]>> {
-  return apiFetch<Promotion[]>('getPromotions');
-}
+export const getPromotions = (scope: 'public' | 'admin' = 'public') =>
+  apiFetch<Promotion[]>('getPromotions', { scope });
+export const addPromotion = (promotion: Omit<Promotion, 'id'>) => apiFetch<Promotion>('addPromotion', { promotion });
+export const updatePromotion = (promotion: Promotion) => apiFetch<Promotion>('updatePromotion', { promotion });
+export const deletePromotion = (id: string) => apiFetch<null>('deletePromotion', { id });
 
-export async function addPromotion(
-  promotion: Omit<Promotion, 'id'>
-): Promise<ApiResponse<Promotion>> {
-  return apiFetch<Promotion>('addPromotion', { promotion });
-}
+/* ---------- Configuración ---------- */
 
-export async function updatePromotion(
-  promotion: Promotion
-): Promise<ApiResponse<Promotion>> {
-  return apiFetch<Promotion>('updatePromotion', { promotion });
-}
+export const getConfig = () => apiFetch<StoreConfig>('getConfig');
+export const updateConfig = (config: StoreConfig) => apiFetch<StoreConfig>('updateConfig', { config });
 
-export async function deletePromotion(id: string): Promise<ApiResponse<null>> {
-  return apiFetch<null>('deletePromotion', { id });
-}
+/* ---------- Vendedores ---------- */
 
-export async function getConfig(): Promise<ApiResponse<StoreConfig>> {
-  return apiFetch<StoreConfig>('getConfig');
-}
-
-export async function updateConfig(
-  config: StoreConfig
-): Promise<ApiResponse<StoreConfig>> {
-  return apiFetch<StoreConfig>('updateConfig', { config });
-}
-
-export async function getSellers(): Promise<ApiResponse<Seller[]>> {
-  return apiFetch<Seller[]>('getSellers');
-}
-
-export async function addSeller(
-  seller: Omit<Seller, 'id' | 'fechaCreacion'>
-): Promise<ApiResponse<Seller>> {
-  return apiFetch<Seller>('addSeller', { seller });
-}
-
-export async function updateSeller(
-  seller: Seller
-): Promise<ApiResponse<Seller>> {
-  return apiFetch<Seller>('updateSeller', { seller });
-}
+export const getSellers = () => apiFetch<Seller[]>('getSellers');
+export const addSeller = (seller: Omit<Seller, 'id' | 'fechaCreacion'>) => apiFetch<Seller>('addSeller', { seller });
+export const updateSeller = (seller: Seller) => apiFetch<Seller>('updateSeller', { seller });
