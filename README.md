@@ -49,12 +49,14 @@ En **Vercel → tu proyecto → Settings → Environment Variables** deben exist
 
 Si agregas o cambias una variable, en **Deployments** pulsa **Redeploy**.
 
+Antes de lanzar, revisa también **SEGURIDAD.md** (incluye un SQL que debes ejecutar una vez en Supabase).
+
 ## 4. Cómo usar el panel (`/admin`)
 
 - **Productos → Nuevo producto**: el formulario está dividido en secciones.
   - *Información principal*: nombre, descripciones, categoría, subcategoría, marca, etiquetas.
   - *Precio e inventario*: precio, precio anterior (se muestra tachado con el % de ahorro), SKU y stock.
-  - *Imágenes*: foto principal y galería (pega la URL de cada foto).
+  - *Imágenes*: foto principal y galería. Pulsa **Subir foto** / **Agregar fotos** y elígelas desde la galería, la cámara o los archivos del dispositivo (también puedes arrastrarlas). Se reducen y optimizan solas y se guardan en Supabase Storage.
   - *Variantes*: para ropa, calzado, lentes, botellas… Usa **Generar combinaciones** (ej.: colores `Negro #000000, Blanco` y tallas `S, M, L`) y luego ajusta stock, precio o foto de cada fila. Con variantes, el stock se controla por cada combinación.
   - *Atributos*: material, género, presentación, capacidad, especificaciones personalizadas (ej.: `Fit: Oversize`).
   - *Suplementos*: beneficios, ingredientes y modo de uso (solo se muestran si los llenas).

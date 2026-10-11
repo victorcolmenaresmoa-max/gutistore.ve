@@ -35,7 +35,7 @@ const FOCUSABLE =
  * Comportamiento accesible de un diálogo: Escape cierra, el foco entra al
  * abrir, queda atrapado dentro con Tab y vuelve al elemento que lo abrió.
  */
-export function useDialog(active: boolean, containerRef: RefObject<HTMLElement>, onClose: () => void) {
+export function useDialog(active: boolean, containerRef: RefObject<HTMLElement | null>, onClose: () => void) {
   useBodyScrollLock(active);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;

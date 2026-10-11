@@ -8,7 +8,7 @@ import { productSummary } from '@/lib/product';
 export const dynamic = 'force-dynamic';
 
 type ProductPageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 function safeDecode(value: string) {
@@ -30,7 +30,8 @@ const loadProduct = cache(async (key: string) => {
 });
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const key = safeDecode(String(params?.id ?? '')).trim();
+  const { id } = await params;
+  const key = safeDecode(String(id ?? '')).trim();
   const { product } = await loadProduct(key);
   if (!product) return { title: 'Producto' };
 
@@ -48,7 +49,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const key = safeDecode(String(params?.id ?? '')).trim();
+  const { id } = await params;
+  const key = safeDecode(String(id ?? '')).trim();
   const { product } = await loadProduct(key);
   // Las URLs antiguas usaban el id: se redirigen a la URL amigable.
   if (product?.slug && key !== product.slug) permanentRedirect(`/producto/${encodeURIComponent(product.slug)}`);

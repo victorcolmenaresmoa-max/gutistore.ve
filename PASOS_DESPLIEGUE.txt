@@ -62,7 +62,10 @@ formulario y cada solicitud recibe un UUID único. LockService evita que pedidos
 simultáneos se escriban uno encima de otro. Solo el panel administrativo reúne todos
 los pedidos.
 
-Variables de Vercel necesarias:
-NEXT_PUBLIC_GAS_URL
-NEXT_PUBLIC_ADMIN_PASSWORD
-NEXT_PUBLIC_ADMIN_TOKEN
+Variables de Vercel necesarias (versión actual, ver README.md y SEGURIDAD.md):
+SUPABASE_URL
+SUPABASE_SECRET_KEY
+ADMIN_PASSWORD
+ADMIN_SESSION_SECRET
+(Las antiguas NEXT_PUBLIC_GAS_URL, NEXT_PUBLIC_ADMIN_PASSWORD y
+NEXT_PUBLIC_ADMIN_TOKEN ya no se usan: bórralas de Vercel.)

@@ -14,6 +14,21 @@ function assertSupabaseConfig() {
   }
 }
 
+/**
+ * Cabeceras de autenticación para Supabase. Solo se usan en el servidor:
+ * la clave secreta nunca llega al navegador.
+ */
+export function supabaseAuthHeaders(): Record<string, string> {
+  assertSupabaseConfig();
+  const headers: Record<string, string> = { apikey: SUPABASE_SECRET_KEY };
+  // Las claves nuevas sb_secret_ no son JWT y deben enviarse solamente como
+  // apikey. La clave legacy service_role sí utiliza Authorization: Bearer.
+  if (!SUPABASE_SECRET_KEY.startsWith('sb_secret_')) {
+    headers.Authorization = `Bearer ${SUPABASE_SECRET_KEY}`;
+  }
+  return headers;
+}
+
 export type SupabaseRestOptions = {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   query?: Record<string, string | number | boolean | undefined>;
@@ -33,15 +48,9 @@ export async function supabaseRest<T>(
   });
 
   const headers: Record<string, string> = {
-    apikey: SUPABASE_SECRET_KEY,
+    ...supabaseAuthHeaders(),
     Accept: 'application/json',
   };
-
-  // Las claves nuevas sb_secret_ no son JWT y deben enviarse solamente como
-  // apikey. La clave legacy service_role sí utiliza Authorization: Bearer.
-  if (!SUPABASE_SECRET_KEY.startsWith('sb_secret_')) {
-    headers.Authorization = `Bearer ${SUPABASE_SECRET_KEY}`;
-  }
 
   if (options.body !== undefined) {
     headers['Content-Type'] = 'application/json';

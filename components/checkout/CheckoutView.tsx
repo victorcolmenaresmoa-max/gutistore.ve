@@ -52,6 +52,9 @@ export default function CheckoutView() {
   const [submitError, setSubmitError] = useState('');
   const [completed, setCompleted] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  // Anti-bots: hora de apertura del formulario y un campo trampa invisible.
+  const startedAtRef = useRef(Date.now());
+  const [website, setWebsite] = useState('');
   const needsAddress = form.metodoEntrega !== 'Retiro coordinado';
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -80,6 +83,8 @@ export default function CheckoutView() {
       items,
       total: subtotal,
       vendedorCodigo: getStoredSellerReferral() || undefined,
+      website,
+      startedAt: startedAtRef.current,
     });
     setSubmitting(false);
 
@@ -265,6 +270,11 @@ export default function CheckoutView() {
               </div>
             </div>
           </fieldset>
+
+          <div className="hp-field" aria-hidden="true">
+            <label htmlFor="checkout-website">No llenes este campo</label>
+            <input id="checkout-website" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+          </div>
 
           <div className="checkout-submit">
             <p className="privacy-note">

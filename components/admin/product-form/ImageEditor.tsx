@@ -2,6 +2,7 @@
 
 import Icon from '@/components/Icons';
 import ProductImage from '@/components/ProductImage';
+import { GalleryUploadButton, ImageUploader } from '@/components/admin/ImageUploader';
 
 export default function ImageEditor({
   main,
@@ -14,17 +15,17 @@ export default function ImageEditor({
   onMainChange: (value: string) => void;
   onGalleryChange: (value: string[]) => void;
 }) {
-  const update = (index: number, value: string) => onGalleryChange(gallery.map((url, i) => (i === index ? value : url)));
-  const remove = (index: number) => onGalleryChange(gallery.filter((_, i) => i !== index));
+  const photos = gallery.filter((url) => url.trim());
+  const remove = (index: number) => onGalleryChange(photos.filter((_, i) => i !== index));
   const move = (index: number, step: number) => {
     const target = index + step;
-    if (target < 0 || target >= gallery.length) return;
-    const next = [...gallery];
+    if (target < 0 || target >= photos.length) return;
+    const next = [...photos];
     [next[index], next[target]] = [next[target], next[index]];
     onGalleryChange(next);
   };
   const makeMain = (index: number) => {
-    const next = [...gallery];
+    const next = [...photos];
     const [picked] = next.splice(index, 1);
     if (main.trim()) next.unshift(main);
     onMainChange(picked);
@@ -33,45 +34,43 @@ export default function ImageEditor({
 
   return (
     <div className="image-editor">
-      <div className="image-editor-main">
-        <div className="image-preview image-preview-lg">
-          <ProductImage src={main.trim()} alt="Vista previa de la imagen principal" />
-        </div>
-        <div className="field">
-          <label htmlFor="imagen">Imagen principal</label>
-          <input id="imagen" value={main} onChange={(e) => onMainChange(e.target.value)} placeholder="https://… o /catalogo/foto.webp" />
-          <small className="field-hint">Pega la URL de la foto. Se muestra completa, sin recortes ni deformación.</small>
-        </div>
-      </div>
+      <ImageUploader
+        value={main}
+        onChange={onMainChange}
+        folder="productos"
+        label="Imagen principal"
+        hint="Se muestra completa, sin recortes ni deformación. Ideal: fondo blanco y producto centrado."
+      />
 
       <div className="image-editor-gallery">
-        <span className="field-label">Galería ({gallery.length})</span>
-        {gallery.length === 0 && <p className="field-hint">Agrega otras vistas: espalda, detalles, etiqueta, uso…</p>}
-        {gallery.map((url, index) => (
-          <div className="gallery-row" key={index}>
-            <div className="image-preview">
-              <ProductImage src={url.trim()} alt="" />
-            </div>
-            <input value={url} onChange={(e) => update(index, e.target.value)} placeholder={`https://… (foto ${index + 2})`} aria-label={`URL de la foto ${index + 2}`} />
-            <div className="gallery-row-actions">
-              <button type="button" className="admin-icon-btn" onClick={() => move(index, -1)} disabled={index === 0} aria-label="Mover arriba" title="Mover arriba">
-                <Icon name="chevronDown" size={15} className="rotate-180" />
-              </button>
-              <button type="button" className="admin-icon-btn" onClick={() => move(index, 1)} disabled={index === gallery.length - 1} aria-label="Mover abajo" title="Mover abajo">
-                <Icon name="chevronDown" size={15} />
-              </button>
-              <button type="button" className="admin-icon-btn" onClick={() => makeMain(index)} disabled={!url.trim()} aria-label="Usar como principal" title="Usar como principal">
-                <Icon name="star" size={15} />
-              </button>
-              <button type="button" className="admin-icon-btn danger" onClick={() => remove(index)} aria-label="Quitar foto" title="Quitar foto">
-                <Icon name="trash" size={15} />
-              </button>
-            </div>
-          </div>
-        ))}
-        <button type="button" className="btn btn-outline-dark btn-sm" onClick={() => onGalleryChange([...gallery, ''])}>
-          <Icon name="plus" size={15} /> Agregar foto
-        </button>
+        <span className="field-label">Galería ({photos.length})</span>
+        {photos.length === 0 && <p className="field-hint">Agrega otras vistas: espalda, detalles, etiqueta, uso…</p>}
+        {photos.length > 0 && (
+          <ul className="gallery-grid">
+            {photos.map((url, index) => (
+              <li className="gallery-tile" key={`${url}-${index}`}>
+                <div className="image-preview">
+                  <ProductImage src={url} alt={`Foto ${index + 2}`} />
+                </div>
+                <div className="gallery-tile-actions">
+                  <button type="button" className="admin-icon-btn" onClick={() => move(index, -1)} disabled={index === 0} aria-label="Mover a la izquierda" title="Mover antes">
+                    <Icon name="chevronLeft" size={15} />
+                  </button>
+                  <button type="button" className="admin-icon-btn" onClick={() => move(index, 1)} disabled={index === photos.length - 1} aria-label="Mover a la derecha" title="Mover después">
+                    <Icon name="chevronRight" size={15} />
+                  </button>
+                  <button type="button" className="admin-icon-btn" onClick={() => makeMain(index)} aria-label="Usar como principal" title="Usar como principal">
+                    <Icon name="star" size={15} />
+                  </button>
+                  <button type="button" className="admin-icon-btn danger" onClick={() => remove(index)} aria-label="Quitar foto" title="Quitar foto">
+                    <Icon name="trash" size={15} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <GalleryUploadButton folder="productos" onUploaded={(urls) => onGalleryChange([...photos, ...urls])} />
       </div>
     </div>
   );

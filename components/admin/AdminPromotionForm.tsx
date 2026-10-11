@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Promotion } from '@/types';
 import Icon from '@/components/Icons';
+import ProductImage from '@/components/ProductImage';
+import { GalleryUploadButton, ImageUploader } from '@/components/admin/ImageUploader';
 
 const EMPTY_FORM = {
   titulo: '',
@@ -11,7 +13,7 @@ const EMPTY_FORM = {
   precio: '',
   precioRegular: '',
   imagen: '',
-  imagenes: [''] as string[],
+  imagenes: [] as string[],
   activo: true,
   destacado: false,
 };
@@ -43,10 +45,7 @@ export default function AdminPromotionForm({
           ? String(editingPromotion.precioRegular)
           : '',
         imagen: editingPromotion.imagen || '',
-        imagenes:
-          editingPromotion.imagenes && editingPromotion.imagenes.length > 0
-            ? [...editingPromotion.imagenes]
-            : [''],
+        imagenes: (editingPromotion.imagenes || []).filter((url) => url.trim()),
         activo: editingPromotion.activo !== false,
         destacado: Boolean(editingPromotion.destacado),
       });
@@ -66,23 +65,12 @@ export default function AdminPromotionForm({
     }));
   };
 
-  const handleGalleryChange = (index: number, value: string) => {
-    setForm((previous) => {
-      const imagenes = [...previous.imagenes];
-      imagenes[index] = value;
-      return { ...previous, imagenes };
-    });
+  const addGalleryPhotos = (urls: string[]) => {
+    setForm((previous) => ({ ...previous, imagenes: [...previous.imagenes, ...urls] }));
   };
 
-  const addGalleryField = () => {
-    setForm((previous) => ({ ...previous, imagenes: [...previous.imagenes, ''] }));
-  };
-
-  const removeGalleryField = (index: number) => {
-    setForm((previous) => {
-      const imagenes = previous.imagenes.filter((_, itemIndex) => itemIndex !== index);
-      return { ...previous, imagenes: imagenes.length > 0 ? imagenes : [''] };
-    });
+  const removeGalleryPhoto = (index: number) => {
+    setForm((previous) => ({ ...previous, imagenes: previous.imagenes.filter((_, itemIndex) => itemIndex !== index) }));
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -170,37 +158,33 @@ export default function AdminPromotionForm({
           </div>
         </div>
 
-        <div className="field">
-          <label htmlFor="promo-imagen">Imagen principal de la oferta</label>
-          <input id="promo-imagen" name="imagen" value={form.imagen} onChange={handleChange} placeholder="https://..." />
-          <small className="field-hint">Esta será la primera foto visible en la tarjeta de la oferta.</small>
-        </div>
+        <ImageUploader
+          value={form.imagen}
+          onChange={(url) => setForm((previous) => ({ ...previous, imagen: url }))}
+          folder="promociones"
+          label="Imagen principal de la oferta"
+          hint="Esta será la primera foto visible en la tarjeta de la oferta."
+        />
 
         <div className="field">
-          <label>Fotos adicionales de la oferta</label>
-          <div className="gallery-inputs">
-            {form.imagenes.map((url, index) => (
-              <div className="gallery-input-row" key={index}>
-                <input
-                  value={url}
-                  onChange={(event) => handleGalleryChange(index, event.target.value)}
-                  placeholder={`https://... (foto ${index + 2})`}
-                />
-                <button
-                  type="button"
-                  className="admin-action-btn danger"
-                  onClick={() => removeGalleryField(index)}
-                  aria-label="Quitar foto"
-                  title="Quitar foto"
-                >
-                  <Icon name="trash" size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-          <button type="button" className="btn btn-outline btn-sm gallery-add-btn" onClick={addGalleryField}>
-            <Icon name="plus" size={15} /> Agregar otra foto
-          </button>
+          <span className="field-label">Fotos adicionales de la oferta ({form.imagenes.length})</span>
+          {form.imagenes.length > 0 && (
+            <ul className="gallery-grid">
+              {form.imagenes.map((url, index) => (
+                <li className="gallery-tile" key={`${url}-${index}`}>
+                  <div className="image-preview">
+                    <ProductImage src={url} alt={`Foto ${index + 2}`} />
+                  </div>
+                  <div className="gallery-tile-actions">
+                    <button type="button" className="admin-icon-btn danger" onClick={() => removeGalleryPhoto(index)} aria-label="Quitar foto" title="Quitar foto">
+                      <Icon name="trash" size={15} />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <GalleryUploadButton folder="promociones" onUploaded={addGalleryPhotos} />
           <small className="field-hint">Puedes añadir fotos del frente, parte trasera, laterales o detalles de la etiqueta.</small>
         </div>
 

@@ -20,7 +20,17 @@ import {
   promotionToRow,
   sellerFromRow,
 } from '@/lib/server/mappers';
-import { isValidOrderStatus } from '@/lib/orders';
+import { DELIVERY_METHODS, PAYMENT_METHODS, isValidOrderStatus } from '@/lib/orders';
+import { rateLimit } from '@/lib/security/rate-limit';
+import { clientIp, forbiddenOrigin, isSameOrigin, tooManyRequests } from '@/lib/security/request';
+import {
+  cleanNumber,
+  cleanText,
+  safeId,
+  sanitizeCategoryInput,
+  sanitizeProductInput,
+  sanitizePromotionInput,
+} from '@/lib/server/validate';
 import { slugify } from '@/lib/text';
 import type {
   ApiResponse,
@@ -29,7 +39,6 @@ import type {
   OrderItem,
   OrderPayload,
   ProductInput,
-  Promotion,
   StoreConfig,
 } from '@/types';
 
@@ -58,8 +67,18 @@ const MIGRATION_HINT =
   'Ejecuta en Supabase el archivo supabase/migrations/20260927000000_expand_gutistore_ecommerce.sql para habilitar esta función.';
 
 function json<T>(payload: ApiResponse<T>, status = 200) {
-  return NextResponse.json(payload, { status });
+  return NextResponse.json(payload, { status, headers: { 'Cache-Control': 'no-store' } });
 }
+
+/** Errores de pedido pensados para el cliente (vienen de la función SQL). */
+const PUBLIC_ERROR_RE =
+  /agotad|quedan? \d|ya no está disponible|Elige las opciones|Cantidad no válida|demasiadas líneas|no tiene productos/i;
+
+/** Pedidos permitidos por IP: 6 cada 10 minutos. */
+const ORDER_LIMIT = 6;
+const ORDER_WINDOW_MS = 10 * 60 * 1000;
+/** Tiempo mínimo para completar el checkout: un humano tarda más de 3 segundos. */
+const MIN_CHECKOUT_MS = 3000;
 
 function getAction(body: unknown) {
   if (!body || typeof body !== 'object' || !('action' in body)) return '';
@@ -162,10 +181,16 @@ async function createUniqueSellerCode(name: string, requestedCode: unknown, excl
 
 function sanitizeOrderItems(items: unknown): OrderItem[] {
   if (!Array.isArray(items)) return [];
-  return orderItemsFromJson(items)
-    .filter((item) => (item.productId || item.id) && item.cantidad > 0)
-    .slice(0, 60)
-    .map((item) => ({ ...item, cantidad: Math.min(999, item.cantidad) }));
+  return orderItemsFromJson(items.slice(0, 60))
+    .map((item) => ({
+      ...item,
+      id: safeId(item.productId || item.id),
+      productId: safeId(item.productId || item.id),
+      varianteId: safeId(item.varianteId),
+      nombre: cleanText(item.nombre, 160),
+      cantidad: Math.min(999, item.cantidad),
+    }))
+    .filter((item) => item.productId && item.cantidad > 0);
 }
 
 async function createOrderLegacy(order: OrderPayload, rawItems: OrderItem[]) {
@@ -211,15 +236,26 @@ async function createOrderLegacy(order: OrderPayload, rawItems: OrderItem[]) {
 }
 
 export async function POST(request: NextRequest) {
+  let isAdmin = false;
   try {
-    const body = (await request.json()) as Record<string, unknown>;
+    if (!isSameOrigin(request)) return forbiddenOrigin();
+
+    const ip = clientIp(request);
+    // Límite general: 240 peticiones por minuto por IP.
+    const general = rateLimit(`store:${ip}`, 240, 60 * 1000);
+    if (!general.ok) return tooManyRequests(general.retryAfter);
+
+    const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return json({ ok: false, message: 'Solicitud no válida.' }, 400);
+    }
     const action = getAction(body);
-    const isAdmin = isValidAdminSessionToken(request.cookies.get(ADMIN_COOKIE_NAME)?.value);
+    isAdmin = isValidAdminSessionToken(request.cookies.get(ADMIN_COOKIE_NAME)?.value);
 
     if (!action) return json({ ok: false, message: 'Acción requerida.' }, 400);
 
     if (ADMIN_ACTIONS.has(action) && !isAdmin) {
-      return json({ ok: false, message: 'Sesión administrativa no válida.' }, 401);
+      return json({ ok: false, message: 'Tu sesión del panel expiró. Vuelve a iniciar sesión.' }, 401);
     }
 
     switch (action) {
@@ -230,8 +266,8 @@ export async function POST(request: NextRequest) {
       }
 
       case 'getProduct': {
-        const id = String(body.id || '').trim();
-        if (!id) return json({ ok: false, message: 'Producto requerido.' }, 400);
+        const id = cleanText(body.id, 120);
+        if (!id || /[,()"\\]/.test(id)) return json({ ok: false, message: 'Producto no encontrado.' });
         const product = await findProduct(id, { includeInactive: isAdmin && body.scope === 'admin' });
         // 200 con ok:false: "no encontrado" es un resultado esperado, no un error del servidor.
         if (!product) return json({ ok: false, message: 'Producto no encontrado.' });
@@ -240,26 +276,23 @@ export async function POST(request: NextRequest) {
 
       case 'addProduct':
       case 'updateProduct': {
-        const input = getObject(body, 'product') as unknown as (ProductInput & { id?: string }) | null;
-        if (!input || !String(input.nombre || '').trim() || input.precio === undefined) {
+        const raw = getObject(body, 'product');
+        if (!raw || raw.precio === undefined) {
           return json({ ok: false, message: 'Datos de producto incompletos.' }, 400);
         }
-        const id = action === 'updateProduct' ? String(input.id || '').trim() : undefined;
+        const input = sanitizeProductInput(raw);
+        if (!input.nombre) return json({ ok: false, message: 'El nombre del producto es obligatorio.' }, 400);
+        const id = action === 'updateProduct' ? safeId(raw.id) : undefined;
         if (action === 'updateProduct' && !id) {
           return json({ ok: false, message: 'ID de producto requerido.' }, 400);
         }
-        const normalizedInput: ProductInput = {
-          ...input,
-          variantes: Array.isArray(input.variantes) ? input.variantes : [],
-          precioAnterior: Number(input.precioAnterior) || 0,
-        };
-        const rows = await saveProduct(normalizedInput, id);
+        const rows = await saveProduct(input, id);
         if (!rows[0]) return json({ ok: false, message: 'Producto no encontrado.' }, 404);
         return json({ ok: true, data: productFromRow(rows[0]) });
       }
 
       case 'deleteProduct': {
-        const id = String(body.id || '').trim();
+        const id = safeId(body.id);
         if (!id) return json({ ok: false, message: 'ID de producto requerido.' }, 400);
         await supabaseRest<unknown>('productos', { method: 'DELETE', query: { id: `eq.${id}` } });
         return json({ ok: true, data: null });
@@ -278,10 +311,11 @@ export async function POST(request: NextRequest) {
 
       case 'addCategory':
       case 'updateCategory': {
-        const input = getObject(body, 'category') as unknown as (CategoryInput & { id?: string }) | null;
-        const nombre = String(input?.nombre || '').trim();
-        if (!input || !nombre) return json({ ok: false, message: 'El nombre de la categoría es obligatorio.' }, 400);
-        const id = action === 'updateCategory' ? String(input.id || '').trim() : undefined;
+        const raw = getObject(body, 'category');
+        const input: CategoryInput | null = raw ? sanitizeCategoryInput(raw) : null;
+        const nombre = input?.nombre || '';
+        if (!raw || !input || !nombre) return json({ ok: false, message: 'El nombre de la categoría es obligatorio.' }, 400);
+        const id = action === 'updateCategory' ? safeId(raw.id) : undefined;
         if (action === 'updateCategory' && !id) return json({ ok: false, message: 'ID de categoría requerido.' }, 400);
 
         let parent: DatabaseCategory | null = null;
@@ -291,7 +325,7 @@ export async function POST(request: NextRequest) {
           });
           parent = parents[0] || null;
           if (!parent) return json({ ok: false, message: 'La categoría principal no existe.' }, 400);
-          if (parent.id === id) return json({ ok: false, message: 'Una categoría no puede ser su propia subcategoría.' }, 400);
+          if (String(parent.id) === id) return json({ ok: false, message: 'Una categoría no puede ser su propia subcategoría.' }, 400);
         }
 
         let previous: DatabaseCategory | null = null;
@@ -337,7 +371,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'deleteCategory': {
-        const id = String(body.id || '').trim();
+        const id = safeId(body.id);
         if (!id) return json({ ok: false, message: 'ID de categoría requerido.' }, 400);
         await supabaseRest<unknown>('tienda_categorias', { method: 'DELETE', query: { id: `eq.${id}` } });
         return json({ ok: true, data: null });
@@ -345,18 +379,33 @@ export async function POST(request: NextRequest) {
 
       /* ================= Pedidos ================= */
       case 'createOrder': {
-        const raw = getObject(body, 'order') as unknown as OrderPayload | null;
+        const orderLimit = rateLimit(`order:${ip}`, ORDER_LIMIT, ORDER_WINDOW_MS);
+        if (!orderLimit.ok) {
+          return tooManyRequests(
+            orderLimit.retryAfter,
+            'Recibimos varios pedidos seguidos desde tu conexión. Espera unos minutos o escríbenos por WhatsApp.'
+          );
+        }
+
+        const raw = getObject(body, 'order') as unknown as (OrderPayload & { website?: unknown; startedAt?: unknown }) | null;
+
+        // Protección contra bots: campo trampa invisible y tiempo mínimo de llenado.
+        const startedAt = Number(raw?.startedAt) || 0;
+        if (raw?.website || (startedAt > 0 && Date.now() - startedAt < MIN_CHECKOUT_MS)) {
+          return json({ ok: false, message: 'No pudimos registrar el pedido. Inténtalo de nuevo en unos segundos.' }, 400);
+        }
+
         const items = sanitizeOrderItems(raw?.items);
         const order: OrderPayload | null = raw
           ? {
-              cliente: String(raw.cliente || '').trim().slice(0, 120),
-              telefono: String(raw.telefono || '').trim().slice(0, 40),
-              email: String(raw.email || '').trim().slice(0, 160),
-              ubicacion: String(raw.ubicacion || '').trim().slice(0, 160),
-              direccion: String(raw.direccion || '').trim().slice(0, 400),
-              metodoEntrega: String(raw.metodoEntrega || '').trim() || 'Por confirmar',
-              metodoPago: String(raw.metodoPago || '').trim() || 'Por definir con el asesor',
-              notas: String(raw.notas || '').trim().slice(0, 800),
+              cliente: cleanText(raw.cliente, 120),
+              telefono: cleanText(raw.telefono, 40),
+              email: cleanText(raw.email, 160),
+              ubicacion: cleanText(raw.ubicacion, 160),
+              direccion: cleanText(raw.direccion, 400),
+              metodoEntrega: DELIVERY_METHODS.includes(raw.metodoEntrega as never) ? String(raw.metodoEntrega) : 'Por confirmar',
+              metodoPago: PAYMENT_METHODS.includes(raw.metodoPago as never) ? String(raw.metodoPago) : 'Por definir con el asesor',
+              notas: cleanText(raw.notas, 800),
               items,
               total: 0,
               vendedorCodigo: normalizeSellerCode(raw.vendedorCodigo) || undefined,
@@ -365,6 +414,12 @@ export async function POST(request: NextRequest) {
 
         if (!order || !order.cliente || !order.telefono || !order.ubicacion || items.length === 0) {
           return json({ ok: false, message: 'Datos de pedido incompletos.' }, 400);
+        }
+        if (order.telefono.replace(/\D/g, '').length < 8 || !/^[\d\s+()-]+$/.test(order.telefono)) {
+          return json({ ok: false, message: 'El número de WhatsApp no es válido.' }, 400);
+        }
+        if (order.email && !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(order.email)) {
+          return json({ ok: false, message: 'El correo no es válido.' }, 400);
         }
 
         let created: CreatedOrder;
@@ -421,8 +476,8 @@ export async function POST(request: NextRequest) {
       }
 
       case 'updateOrderStatus': {
-        const id = String(body.id || '').trim();
-        const estado = String(body.estado || '').trim();
+        const id = safeId(body.id);
+        const estado = cleanText(body.estado, 40);
         if (!id || !estado) return json({ ok: false, message: 'ID y estado son obligatorios.' }, 400);
         if (!isValidOrderStatus(estado)) return json({ ok: false, message: 'Estado de pedido no válido.' }, 400);
 
@@ -457,8 +512,9 @@ export async function POST(request: NextRequest) {
       }
 
       case 'addPromotion': {
-        const input = getObject(body, 'promotion') as unknown as Omit<Promotion, 'id'> | null;
-        if (!input || !String(input.titulo || '').trim() || input.precio === undefined) {
+        const raw = getObject(body, 'promotion');
+        const input = raw ? sanitizePromotionInput(raw) : null;
+        if (!raw || !input || !input.titulo || raw.precio === undefined) {
           return json({ ok: false, message: 'Datos de la promoción incompletos.' }, 400);
         }
         const rows = await supabaseRest<DatabasePromotion[]>('promociones', {
@@ -470,11 +526,14 @@ export async function POST(request: NextRequest) {
       }
 
       case 'updatePromotion': {
-        const input = getObject(body, 'promotion') as unknown as Promotion | null;
-        if (!input?.id) return json({ ok: false, message: 'ID de la promoción requerido.' }, 400);
+        const raw = getObject(body, 'promotion');
+        const id = safeId(raw?.id);
+        if (!raw || !id) return json({ ok: false, message: 'ID de la promoción requerido.' }, 400);
+        const input = sanitizePromotionInput(raw);
+        if (!input.titulo) return json({ ok: false, message: 'El título de la promoción es obligatorio.' }, 400);
         const rows = await supabaseRest<DatabasePromotion[]>('promociones', {
           method: 'PATCH',
-          query: { id: `eq.${input.id}` },
+          query: { id: `eq.${id}` },
           body: promotionToRow(input),
           prefer: 'return=representation',
         });
@@ -483,7 +542,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'deletePromotion': {
-        const id = String(body.id || '').trim();
+        const id = safeId(body.id);
         if (!id) return json({ ok: false, message: 'ID de la promoción requerido.' }, 400);
         await supabaseRest<unknown>('promociones', { method: 'DELETE', query: { id: `eq.${id}` } });
         return json({ ok: true, data: null });
@@ -501,7 +560,7 @@ export async function POST(request: NextRequest) {
       case 'updateConfig': {
         const config = getObject(body, 'config') as unknown as StoreConfig | null;
         const tasaBs = Number(config?.tasaBs);
-        if (!Number.isFinite(tasaBs) || tasaBs < 0) {
+        if (!Number.isFinite(tasaBs) || tasaBs < 0 || tasaBs > 10_000_000) {
           return json({ ok: false, message: 'La tasa debe ser un número igual o mayor que cero.' }, 400);
         }
         const updated = await supabaseRest<unknown[]>('configuracion', {
@@ -529,7 +588,7 @@ export async function POST(request: NextRequest) {
 
       case 'addSeller': {
         const input = getObject(body, 'seller');
-        const nombre = String(input?.nombre || '').trim();
+        const nombre = cleanText(input?.nombre, 120);
         if (!nombre) return json({ ok: false, message: 'El nombre del vendedor es obligatorio.' }, 400);
         const codigo = await createUniqueSellerCode(nombre, input?.codigo);
         const rows = await supabaseRest<DatabaseSeller[]>('vendedores', {
@@ -542,8 +601,8 @@ export async function POST(request: NextRequest) {
 
       case 'updateSeller': {
         const input = getObject(body, 'seller');
-        const id = String(input?.id || '').trim();
-        const nombre = String(input?.nombre || '').trim();
+        const id = safeId(input?.id);
+        const nombre = cleanText(input?.nombre, 120);
         if (!id) return json({ ok: false, message: 'ID de vendedor requerido.' }, 400);
         if (!nombre) return json({ ok: false, message: 'El nombre del vendedor es obligatorio.' }, 400);
         const codigo = await createUniqueSellerCode(nombre, input?.codigo, id);
@@ -562,12 +621,13 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error de Supabase:', error);
-    return json(
-      {
-        ok: false,
-        message: error instanceof Error ? error.message : 'No se pudo completar la operación en Supabase.',
-      },
-      500
-    );
+    const message = error instanceof Error ? error.message : '';
+    // Al público solo se le muestran mensajes pensados para él (stock, disponibilidad).
+    // Los detalles técnicos de la base de datos solo los ve el administrador.
+    const visible =
+      isAdmin || PUBLIC_ERROR_RE.test(message) || message.startsWith('Falta configurar')
+        ? message || 'No se pudo completar la operación.'
+        : 'No se pudo completar la operación. Inténtalo de nuevo en unos minutos.';
+    return json({ ok: false, message: visible }, 500);
   }
 }

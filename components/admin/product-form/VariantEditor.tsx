@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Icon from '@/components/Icons';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 import ColorSwatch from '@/components/product/ColorSwatch';
 import { resolveColorHex, sanitizeHex } from '@/lib/colors';
 import { splitTags } from '@/lib/text';
@@ -217,10 +218,10 @@ export default function VariantEditor({
                 <span className="variant-cell-label">Stock</span>
                 <input value={variant.stock} onChange={(e) => update(variant.id, { stock: e.target.value })} inputMode="numeric" />
               </label>
-              <label className="variant-cell" role="cell">
+              <div className="variant-cell" role="cell">
                 <span className="variant-cell-label">Imagen</span>
-                <input value={variant.imagen} onChange={(e) => update(variant.id, { imagen: e.target.value })} placeholder="https://…" />
-              </label>
+                <ImageUploader value={variant.imagen} onChange={(url) => update(variant.id, { imagen: url })} folder="variantes" size="sm" />
+              </div>
               <label className="variant-cell variant-active" role="cell">
                 <span className="variant-cell-label">Activa</span>
                 <input type="checkbox" checked={variant.activo} onChange={(e) => update(variant.id, { activo: e.target.checked })} />

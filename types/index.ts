@@ -159,6 +159,10 @@ export interface Seller {
 }
 
 export interface OrderPayload {
+  /** Campo trampa anti-bots (siempre vacío para personas). */
+  website?: string;
+  /** Momento en que se abrió el checkout (anti-bots). */
+  startedAt?: number;
   cliente: string;
   telefono: string;
   email: string;

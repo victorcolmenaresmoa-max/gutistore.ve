@@ -5,6 +5,7 @@ import type { Category, CategoryInput, Product } from '@/types';
 import CategoryArt from '@/components/CategoryArt';
 import Icon from '@/components/Icons';
 import ProductImage from '@/components/ProductImage';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 import { categoryArtKind } from '@/lib/categories';
 import { normalizeText } from '@/lib/text';
 
@@ -70,7 +71,7 @@ export default function AdminCategoryManager({ categories, products, error, savi
       id: editing?.id,
       nombre: form.nombre.trim(),
       descripcion: form.descripcion.trim(),
-      imagen: form.imagen.trim(),
+      imagen: form.imagen,
       parentId: form.parentId || null,
       orden: Math.trunc(Number(form.orden) || 0),
       activo: form.activo,
@@ -135,10 +136,13 @@ export default function AdminCategoryManager({ categories, products, error, savi
             <label htmlFor="cat-desc">Descripción</label>
             <input id="cat-desc" value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} placeholder="Opcional" />
           </div>
-          <div className="field">
-            <label htmlFor="cat-img">Imagen de portada (URL)</label>
-            <input id="cat-img" value={form.imagen} onChange={(e) => setForm({ ...form, imagen: e.target.value })} placeholder="Opcional. Si no hay, se usa una ilustración." />
-          </div>
+          <ImageUploader
+            value={form.imagen}
+            onChange={(url) => setForm((previous) => ({ ...previous, imagen: url }))}
+            folder="categorias"
+            label="Imagen de portada"
+            hint="Opcional. Si no hay foto, se usa una ilustración."
+          />
           <div className="form-grid">
             <div className="field">
               <label htmlFor="cat-orden">Orden</label>

@@ -66,7 +66,8 @@ export type IconName =
   | 'settings'
   | 'folder'
   | 'arrowLeft'
-  | 'externalLink';
+  | 'externalLink'
+  | 'upload';
 
 const iconPaths: Record<IconName, ReactNode> = {
   bag: <><path d="M6 8h12l-1 12H7L6 8Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></>,
@@ -135,6 +136,7 @@ const iconPaths: Record<IconName, ReactNode> = {
   folder: <path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z" />,
   arrowLeft: <><path d="M19 12H5" /><path d="m10 7-5 5 5 5" /></>,
   externalLink: <><path d="M14 4h6v6M20 4l-9 9" /><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></>,
+  upload: <><path d="M12 15V4" /><path d="m7 9 5-5 5 5" /><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" /></>,
 };
 
 export default function Icon({

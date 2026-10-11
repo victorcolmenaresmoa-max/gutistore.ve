@@ -4741,3 +4741,12 @@ p {
   flex: 1;
   min-width: 0;
 }
+
+/* Campo trampa anti-bots: invisible para personas y lectores de pantalla. */
+.hp-field {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
