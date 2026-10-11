@@ -53,7 +53,7 @@ export default function CartDrawer() {
             <h3>Tu carrito está vacío</h3>
             <p>Explora la tienda y agrega lo que quieras llevarte.</p>
             <Link href="/tienda" className="btn btn-primary" onClick={closeDrawer}>
-              Ir a la tienda <Icon name="arrowRight" size={17} />
+              Ir a la tienda
             </Link>
           </div>
         ) : (
@@ -76,7 +76,7 @@ export default function CartDrawer() {
                   Ver carrito
                 </Link>
                 <Link href="/checkout" className="btn btn-primary" onClick={closeDrawer}>
-                  Finalizar pedido <Icon name="arrowRight" size={17} />
+                  Finalizar pedido
                 </Link>
               </div>
             </div>

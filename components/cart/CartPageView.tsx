@@ -94,7 +94,7 @@ export default function CartPageView() {
           </section>
           <CartSummary>
             <Link href="/checkout" className={`btn btn-primary btn-lg btn-block ${syncing ? 'is-busy' : ''}`}>
-              Continuar con el pedido <Icon name="arrowRight" size={18} />
+              Continuar con el pedido
             </Link>
           </CartSummary>
         </div>

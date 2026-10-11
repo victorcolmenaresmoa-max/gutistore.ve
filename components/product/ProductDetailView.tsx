@@ -33,6 +33,7 @@ import ProductBadges from './ProductBadges';
 import ProductGallery from './ProductGallery';
 import ProductInfoSections from './ProductInfoSections';
 import VariantSelector from './VariantSelector';
+import SectionHeading from '@/components/ui/SectionHeading';
 import { ProductGrid } from './ProductCard';
 
 const LOW_STOCK = 5;
@@ -246,12 +247,7 @@ export default function ProductDetailView({
         </section>
 
         <section className="pdp-info" aria-labelledby="product-title">
-          <div className="pdp-eyebrow">
-            {product.marca && <span className="pdp-brand">{product.marca}</span>}
-            <Link href={categoryHref(product.categoria, product.subcategoria)}>
-              {product.subcategoria || product.categoria}
-            </Link>
-          </div>
+          {product.marca && <p className="pdp-brand">{product.marca}</p>}
           <h1 id="product-title">{product.nombre}</h1>
           {product.descripcionCorta && <p className="pdp-lead">{product.descripcionCorta}</p>}
 
@@ -289,7 +285,7 @@ export default function ProductDetailView({
               onClick={() => addToCart(false)}
               disabled={blockedByStock || allInCart}
             >
-              <Icon name="cart" size={19} /> {primaryLabel}
+              {primaryLabel}
             </button>
             {!blockedByStock && !allInCart && (
               <button type="button" className="btn btn-outline-dark btn-lg pdp-buy-now" onClick={() => addToCart(true)}>
@@ -309,16 +305,12 @@ export default function ProductDetailView({
 
           <ul className="pdp-assurance">
             <li>
-              <Icon name="shield" size={18} />
-              <span>
-                <strong>Sin pago en línea.</strong> Registras tu pedido y un asesor confirma disponibilidad, entrega y pago contigo.
-              </span>
+              <Icon name="message" size={17} />
+              <span>Pagas cuando un asesor confirma tu pedido por WhatsApp.</span>
             </li>
             <li>
-              <Icon name="truck" size={18} />
-              <span>
-                <strong>Entrega coordinada</strong> a domicilio, por agencia o retiro.
-              </span>
+              <Icon name="truck" size={17} />
+              <span>Envío a domicilio, agencia de encomiendas o retiro coordinado.</span>
             </li>
           </ul>
 
@@ -332,27 +324,14 @@ export default function ProductDetailView({
 
       {related.length > 0 && (
         <section className="pdp-rail" aria-labelledby="related-title">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">Te puede interesar</span>
-              <h2 id="related-title">Productos relacionados</h2>
-            </div>
-          </div>
+          <SectionHeading id="related-title" title="También te puede interesar" />
           <ProductGrid products={related} />
         </section>
       )}
 
       {sameCategory.length > 0 && (
         <section className="pdp-rail" aria-labelledby="category-title">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">Más de {product.categoria}</span>
-              <h2 id="category-title">De la misma categoría</h2>
-            </div>
-            <Link href={categoryHref(product.categoria)} className="btn btn-outline-dark btn-sm">
-              Ver todo <Icon name="arrowRight" size={15} />
-            </Link>
-          </div>
+          <SectionHeading id="category-title" title={`Más de ${product.categoria}`} href={categoryHref(product.categoria)} />
           <ProductGrid products={sameCategory} />
         </section>
       )}

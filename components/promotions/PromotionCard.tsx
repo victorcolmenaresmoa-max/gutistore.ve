@@ -21,13 +21,14 @@ export default function PromotionCard({ promotion }: { promotion: Promotion }) {
   const discount = hasDiscount ? Math.round((1 - promotion.precio / regular) * 100) : 0;
 
   return (
-    <article className={`promo-card ${promotion.destacado ? 'is-featured' : ''}`}>
+    <article className="promo-card">
       <div className="promo-media">
         <ProductImage src={activeImage} alt={promotion.titulo} />
-        <div className="badges promo-badges">
-          <span className="badge badge-red">{discount > 0 ? `-${discount}%` : 'Promo'}</span>
-          {promotion.destacado && <span className="badge badge-light">Destacada</span>}
-        </div>
+        {discount > 0 && (
+          <div className="badges promo-badges">
+            <span className="badge badge-red">-{discount}%</span>
+          </div>
+        )}
         {gallery.length > 1 && (
           <div className="promo-thumbs" aria-label={`Fotos de ${promotion.titulo}`}>
             {gallery.map((url, index) => (
@@ -62,7 +63,7 @@ export default function PromotionCard({ promotion }: { promotion: Promotion }) {
             {hasDiscount && <span className="promo-saving">Ahorras {formatUSD(regular - promotion.precio)}</span>}
           </div>
           <button type="button" className="btn btn-primary" onClick={() => addItem(lineFromPromotion(promotion), 1)}>
-            <Icon name="cart" size={17} /> Agregar
+            Agregar al carrito
           </button>
         </div>
       </div>

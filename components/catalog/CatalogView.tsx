@@ -105,7 +105,7 @@ export default function CatalogView({
     <div className="catalog">
       <header className="catalog-hero">
         <div className="container">
-          <nav className="breadcrumbs breadcrumbs-light" aria-label="Ruta de navegación">
+          <nav className="breadcrumbs" aria-label="Ruta de navegación">
             <ol>
               <li>
                 <Link href="/">Inicio</Link>
@@ -116,8 +116,14 @@ export default function CatalogView({
               {filters.categoria && !forced?.categoria && <li aria-current="page">{filters.categoria}</li>}
             </ol>
           </nav>
-          <span className="eyebrow eyebrow-light">{eyebrow}</span>
-          <h1>{heading}</h1>
+          <div className="catalog-title">
+            <h1>{heading}</h1>
+            {!loading && (
+              <span className="catalog-count" aria-live="polite">
+                {results.length} producto{results.length === 1 ? '' : 's'}
+              </span>
+            )}
+          </div>
 
           <div className="catalog-search">
             <Icon name="search" size={19} />
@@ -180,9 +186,7 @@ export default function CatalogView({
 
         <section className="catalog-results" aria-label="Productos">
           <div className="catalog-toolbar">
-            <p className="results-count" aria-live="polite">
-              {loading ? 'Cargando productos…' : `${results.length} producto${results.length === 1 ? '' : 's'}`}
-            </p>
+            <p className="results-count">{loading ? 'Cargando productos…' : ''}</p>
             <div className="catalog-toolbar-actions">
               <button type="button" className="btn btn-outline-dark btn-sm filters-toggle" onClick={() => setDrawerOpen(true)}>
                 <Icon name="sliders" size={16} /> Filtros

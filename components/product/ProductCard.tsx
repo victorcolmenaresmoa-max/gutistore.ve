@@ -21,7 +21,7 @@ import {
 import ColorSwatch from './ColorSwatch';
 import ProductBadges from './ProductBadges';
 
-const MAX_SWATCHES = 5;
+const MAX_SWATCHES = 4;
 const LOW_STOCK = 3;
 
 export default function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
@@ -37,72 +37,65 @@ export default function ProductCard({ product, priority = false }: { product: Pr
   const stock = totalStock(product);
   const brandLine = product.marca || product.subcategoria || product.categoria;
 
+  // Una sola línea de detalle: colores y tallas, o la presentación.
+  const details: string[] = [];
+  if (colors.length > 1) details.push(`${colors.length} colores`);
+  else if (colors.length === 1) details.push(colors[0].nombre);
+  if (sizes.length) details.push(sizes.length <= 4 ? sizes.join(', ') : `${sizes[0]} a ${sizes[sizes.length - 1]}`);
+  if (!withVariants && product.presentacion) details.push(product.presentacion);
+
   return (
     <article className={`product-card ${inStock ? '' : 'is-sold-out'}`}>
-      <Link href={href} className="product-card-media" aria-label={product.nombre}>
-        <ProductImage src={product.imagen || gallery[0]} alt={product.nombre} eager={priority} className="primary" />
-        {secondImage && product.imagen && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={secondImage} alt="" className="product-image secondary" loading="lazy" aria-hidden="true" />
+      <div className="product-card-media">
+        <Link href={href} className="product-card-media-link" tabIndex={-1} aria-hidden="true">
+          <ProductImage src={product.imagen || gallery[0]} alt="" eager={priority} className="primary" />
+          {secondImage && product.imagen && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={secondImage} alt="" className="product-image secondary" loading="lazy" />
+          )}
+        </Link>
+        <ProductBadges product={product} price={range.min} single className="product-card-badges" />
+        {inStock && !withVariants && (
+          <button
+            type="button"
+            className="card-quick-add"
+            onClick={() => addItem(lineFromProduct(product, null), 1)}
+            aria-label={`Agregar ${product.nombre} al carrito`}
+            title="Agregar al carrito"
+          >
+            <Icon name="plus" size={20} />
+          </button>
         )}
-        <ProductBadges product={product} price={range.min} className="product-card-badges" />
-      </Link>
+      </div>
 
       <div className="product-card-body">
-        <span className="product-card-eyebrow">{brandLine}</span>
+        <p className="product-card-brand">{brandLine}</p>
         <h3 className="product-card-title">
           <Link href={href}>{product.nombre}</Link>
         </h3>
-
-        <div className="product-card-variants">
-          {colors.length > 0 && (
-            <div className="card-swatches" aria-label={`Colores: ${colors.map((c) => c.nombre).join(', ')}`}>
-              {colors.slice(0, MAX_SWATCHES).map((color) => (
-                <span key={color.nombre} title={color.nombre}>
-                  <ColorSwatch nombre={color.nombre} hex={color.hex} size="xs" />
-                </span>
-              ))}
-              {colors.length > MAX_SWATCHES && <small>+{colors.length - MAX_SWATCHES}</small>}
-            </div>
-          )}
-          {sizes.length > 0 && (
-            <span className="card-sizes">
-              {sizes.length <= 4 ? sizes.join(' · ') : `${sizes[0]} – ${sizes[sizes.length - 1]}`}
-            </span>
-          )}
-          {!withVariants && product.presentacion && <span className="card-sizes">{product.presentacion}</span>}
-        </div>
-
-        <div className="product-card-footer">
-          <div className="product-card-price">
-            <Price
-              amount={range.min}
-              compareAt={range.min === range.max ? comparePrice(product, range.min) : 0}
-              prefix={range.min !== range.max ? 'Desde' : undefined}
-              size="md"
-            />
-            {inStock && stock <= LOW_STOCK && <span className="low-stock">¡Últimas {stock}!</span>}
+        {(details.length > 0 || colors.length > 1) && (
+          <div className="product-card-details">
+            {colors.length > 1 && (
+              <span className="card-swatches" aria-hidden="true">
+                {colors.slice(0, MAX_SWATCHES).map((color) => (
+                  <ColorSwatch key={color.nombre} nombre={color.nombre} hex={color.hex} size="xs" />
+                ))}
+              </span>
+            )}
+            <span className="card-detail-text">{details.join(' · ')}</span>
           </div>
-
-          {!inStock ? (
-            <span className="card-action is-disabled" aria-disabled="true">
-              Sin stock
+        )}
+        <div className="product-card-price">
+          <Price
+            amount={range.min}
+            compareAt={range.min === range.max ? comparePrice(product, range.min) : 0}
+            prefix={range.min !== range.max ? 'Desde' : undefined}
+            size="md"
+          />
+          {inStock && stock > 0 && stock <= LOW_STOCK && (
+            <span className="low-stock">
+              {stock === 1 ? 'Queda 1' : `Quedan ${stock}`}
             </span>
-          ) : withVariants ? (
-            <Link href={href} className="card-action" aria-label={`Elegir opciones de ${product.nombre}`}>
-              <span>Opciones</span>
-              <Icon name="arrowRight" size={16} />
-            </Link>
-          ) : (
-            <button
-              type="button"
-              className="card-action card-action-primary"
-              onClick={() => addItem(lineFromProduct(product, null), 1)}
-              aria-label={`Agregar ${product.nombre} al carrito`}
-            >
-              <Icon name="cart" size={17} />
-              <span>Agregar</span>
-            </button>
           )}
         </div>
       </div>

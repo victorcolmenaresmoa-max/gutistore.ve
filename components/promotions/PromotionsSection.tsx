@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import Icon from '@/components/Icons';
+import SectionHeading from '@/components/ui/SectionHeading';
 import { usePromotions } from '@/hooks/useStoreData';
 import PromotionCard from './PromotionCard';
 
@@ -10,8 +9,8 @@ import PromotionCard from './PromotionCard';
  * activas, la sección no se muestra: nunca se inventan ofertas.
  */
 export default function PromotionsSection({
-  title = 'Promociones y combos',
-  description = 'Combos, packs y campañas por tiempo limitado. Se agregan al carrito como cualquier producto.',
+  title = 'Combos y promociones',
+  description = 'Packs a precio especial. Se agregan al carrito como cualquier producto.',
   showLink = true,
   limit,
 }: {
@@ -28,20 +27,13 @@ export default function PromotionsSection({
   return (
     <section className="section promotions-section" id="promociones" aria-labelledby="promotions-title">
       <div className="container">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">
-              <Icon name="tag" size={13} /> Promociones
-            </span>
-            <h2 id="promotions-title">{title}</h2>
-            <p>{description}</p>
-          </div>
-          {showLink && (
-            <Link href="/ofertas" className="btn btn-outline-dark btn-sm">
-              Ver todas las ofertas <Icon name="arrowRight" size={15} />
-            </Link>
-          )}
-        </div>
+        <SectionHeading
+          id="promotions-title"
+          title={title}
+          description={description}
+          href={showLink ? '/ofertas' : undefined}
+          linkLabel="Ver ofertas"
+        />
         <div className="promotions-grid">
           {promotions.map((promotion) => (
             <PromotionCard key={promotion.id} promotion={promotion} />

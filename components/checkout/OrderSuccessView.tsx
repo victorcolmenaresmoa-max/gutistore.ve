@@ -91,7 +91,7 @@ export default function OrderSuccessView() {
 
         <div className="success-actions">
           <Link href="/tienda" className="btn btn-primary btn-lg">
-            Seguir comprando <Icon name="arrowRight" size={18} />
+            Seguir comprando
           </Link>
           <Link href="/" className="btn btn-ghost">
             Volver al inicio

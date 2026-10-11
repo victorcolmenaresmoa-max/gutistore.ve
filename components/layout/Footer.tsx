@@ -21,11 +21,11 @@ export default function Footer() {
       <div className="container footer-top">
         <div className="footer-about">
           <Link href="/" aria-label="GutiStore, ir al inicio" className="footer-logo-link">
-            <BrandLogo variant="full" className="footer-logo" />
+            <BrandLogo variant="horizontal" className="footer-logo" />
           </Link>
           <p>
-            Ropa, calzado, accesorios, hidratación y suplementos seleccionados para entrenar, moverte y
-            verte bien. Todo en un solo lugar.
+            Suplementos, ropa deportiva y accesorios. Haces tu pedido en línea y lo confirmamos contigo por
+            WhatsApp.
           </p>
         </div>
 
@@ -53,9 +53,6 @@ export default function Footer() {
           <Link href="/carrito">Mi carrito</Link>
           <Link href="/#como-comprar">Cómo comprar</Link>
           <Link href="/#preguntas">Preguntas frecuentes</Link>
-          <span className="footer-note">
-            <Icon name="shield" size={15} /> Pago coordinado con un asesor
-          </span>
         </nav>
       </div>
 
