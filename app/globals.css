@@ -974,52 +974,10 @@ p {
 
 .site-header {
   position: sticky;
-  top: calc(-1 * 34px);
+  top: 0;
   z-index: var(--z-header);
   background: var(--c-black);
   color: var(--c-white);
-}
-
-.announcement-bar {
-  height: 34px;
-  border-bottom: 1px solid var(--c-dark-line);
-  background: var(--c-ink);
-  color: var(--c-text-inverse-muted);
-  font-size: var(--fs-xs);
-}
-
-.announcement-inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 28px;
-  height: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.announcement-inner span {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.announcement-inner svg {
-  flex: none;
-  color: var(--c-red);
-}
-
-.announcement-extra {
-  display: none !important;
-}
-
-@media (min-width: 900px) {
-  .announcement-extra {
-    display: inline-flex !important;
-  }
 }
 
 .navbar {

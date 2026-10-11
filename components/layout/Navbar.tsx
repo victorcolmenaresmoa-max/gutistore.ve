@@ -120,20 +120,6 @@ export default function Navbar() {
 
   return (
     <header className="site-header">
-      <div className="announcement-bar">
-        <div className="container announcement-inner">
-          <span>
-            <Icon name="shield" size={14} /> Pedido sin pago en línea: un asesor confirma contigo
-          </span>
-          <span className="announcement-extra">
-            <Icon name="dollar" size={14} /> Precios en USD y Bs
-          </span>
-          <span className="announcement-extra">
-            <Icon name="truck" size={14} /> Entregas coordinadas
-          </span>
-        </div>
-      </div>
-
       <div className="navbar">
         <div className="container navbar-inner">
           <button
