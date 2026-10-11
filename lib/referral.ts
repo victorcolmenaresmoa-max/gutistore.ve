@@ -41,23 +41,22 @@ export function captureSellerReferralFromUrl(): void {
 export function getStoredSellerReferral(): string {
   if (typeof window === 'undefined') return '';
 
-  try {
-    const raw =
-      window.localStorage.getItem(SELLER_REFERRAL_KEY) || window.localStorage.getItem(LEGACY_REFERRAL_KEY);
-    if (!raw) return '';
+  // Se revisa cada clave por separado: un referido vencido en la clave nueva
+  // no debe borrar uno todavía vigente guardado por la versión anterior.
+  for (const key of [SELLER_REFERRAL_KEY, LEGACY_REFERRAL_KEY]) {
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) continue;
 
-    const parsed = JSON.parse(raw) as Partial<StoredSellerReferral>;
-    const code = normalizeSellerCode(parsed.code);
-    const expiresAt = Number(parsed.expiresAt) || 0;
+      const parsed = JSON.parse(raw) as Partial<StoredSellerReferral>;
+      const code = normalizeSellerCode(parsed.code);
+      const expiresAt = Number(parsed.expiresAt) || 0;
 
-    if (!code || expiresAt <= Date.now()) {
-      window.localStorage.removeItem(SELLER_REFERRAL_KEY);
-      window.localStorage.removeItem(LEGACY_REFERRAL_KEY);
-      return '';
+      if (code && expiresAt > Date.now()) return code;
+      window.localStorage.removeItem(key);
+    } catch {
+      // Dato dañado o localStorage bloqueado: se ignora esta clave.
     }
-
-    return code;
-  } catch {
-    return '';
   }
+  return '';
 }

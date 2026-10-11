@@ -639,6 +639,7 @@ p {
   border: 1.5px solid var(--c-border);
   border-radius: var(--r-sm);
   background: var(--c-white);
+  color: var(--c-text);
   font-size: var(--fs-md);
   transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
 }

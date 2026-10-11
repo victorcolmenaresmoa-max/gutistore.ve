@@ -71,6 +71,7 @@ export default function ProductDetailView({
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(initialProduct?.imagen || '');
   const [showErrors, setShowErrors] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const selectorRef = useRef<HTMLDivElement>(null);
 
   // Si el servidor no pudo leer el producto, se intenta desde el navegador.
@@ -95,7 +96,7 @@ export default function ProductDetailView({
     return () => {
       active = false;
     };
-  }, [initialProduct, productKey]);
+  }, [initialProduct, productKey, attempt]);
 
   const gallery = useMemo(() => (product ? productGallery(product) : []), [product]);
   const variant = product ? findSelectedVariant(product, selection) : null;
@@ -132,7 +133,14 @@ export default function ProductDetailView({
   if (status === 'error') {
     return (
       <div className="container pdp">
-        <ErrorState message={errorMessage} onRetry={() => router.refresh()} />
+        <ErrorState
+          message={errorMessage}
+          onRetry={() => {
+            // Vuelve a pedir el producto desde el navegador (antes el botón no hacía nada).
+            setAttempt((value) => value + 1);
+            router.refresh();
+          }}
+        />
       </div>
     );
   }

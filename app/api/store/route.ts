@@ -183,7 +183,8 @@ async function createOrderLegacy(order: OrderPayload, rawItems: OrderItem[]) {
       item.tipo === 'promocion'
         ? promoRows.find((row) => String(row.id) === id)
         : productRows.find((row) => String(row.id) === id);
-    if (!source) throw new Error(`"${item.nombre}" ya no está disponible.`);
+    // Productos o promociones ocultos no se pueden pedir.
+    if (!source || source.activo === false) throw new Error(`"${item.nombre}" ya no está disponible.`);
     const precio = Number(source.precio) || 0;
     const nombre = 'titulo' in source ? source.titulo : source.nombre;
     return { ...item, nombre, precio, subtotal: Math.round(precio * item.cantidad * 100) / 100 };
