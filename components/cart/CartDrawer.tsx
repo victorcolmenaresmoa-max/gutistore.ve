@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { prefersReducedMotion } from '@/lib/motion';
 import Icon from '@/components/Icons';
 import Price from '@/components/Price';
 import { useCart } from '@/context/CartContext';
@@ -20,10 +21,33 @@ export default function CartDrawer() {
     closeDrawer();
   }, [pathname, closeDrawer]);
 
-  if (!drawerOpen) return null;
+  // Se mantiene montado un momento al cerrar para animar la salida.
+  const [mounted, setMounted] = useState(drawerOpen);
+  const [closing, setClosing] = useState(false);
+  useEffect(() => {
+    if (drawerOpen) {
+      setMounted(true);
+      setClosing(false);
+      return;
+    }
+    if (!mounted) return;
+    if (prefersReducedMotion()) {
+      setMounted(false);
+      return;
+    }
+    setClosing(true);
+    const timer = window.setTimeout(() => {
+      setMounted(false);
+      setClosing(false);
+    }, 280);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drawerOpen]);
+
+  if (!mounted && !drawerOpen) return null;
 
   return (
-    <div className="drawer-root" role="presentation">
+    <div className={`drawer-root ${closing ? 'is-closing' : ''}`} role="presentation">
       <button type="button" className="drawer-backdrop" aria-label="Cerrar carrito" onClick={closeDrawer} />
       <aside
         className="drawer drawer-right cart-drawer"
@@ -59,14 +83,14 @@ export default function CartDrawer() {
         ) : (
           <>
             <div className="drawer-body cart-drawer-lines">
-              {lines.map((line) => (
-                <CartLineItem key={line.key} line={line} compact />
+              {lines.map((line, index) => (
+                <CartLineItem key={line.key} line={line} compact index={index} />
               ))}
             </div>
             <div className="drawer-footer">
               <div className="cart-summary-row cart-summary-total">
                 <span>Subtotal</span>
-                <Price amount={subtotal} size="md" />
+                <Price amount={subtotal} size="md" animate />
               </div>
               <p className="drawer-note">
                 <Icon name="shield" size={15} /> No se cobra nada en línea. Confirmamos disponibilidad, entrega y pago contigo.

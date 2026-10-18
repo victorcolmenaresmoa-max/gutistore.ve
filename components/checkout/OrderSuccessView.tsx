@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import Icon from '@/components/Icons';
 import Price from '@/components/Price';
 import { Spinner } from '@/components/ui/States';
 import { formatUSD } from '@/lib/currency';
 import { LastOrder, readLastOrder } from '@/lib/lastOrder';
 import { shortOrderId } from '@/lib/text';
+import { confettiRain } from '@/lib/motion';
 
 export default function OrderSuccessView() {
   const [order, setOrder] = useState<LastOrder | null>(null);
@@ -17,6 +17,13 @@ export default function OrderSuccessView() {
     setOrder(readLastOrder());
     setLoaded(true);
   }, []);
+
+  // Celebración: confeti cuando aparece la confirmación.
+  useEffect(() => {
+    if (!loaded) return;
+    const timer = window.setTimeout(() => confettiRain(), 350);
+    return () => window.clearTimeout(timer);
+  }, [loaded]);
 
   if (!loaded) {
     return (
@@ -30,7 +37,12 @@ export default function OrderSuccessView() {
     <div className="container page-narrow success-page">
       <div className="success-card">
         <span className="success-icon" aria-hidden="true">
-          <Icon name="check" size={34} />
+          <span className="success-ring" />
+          <span className="success-ring success-ring-2" />
+          <svg viewBox="0 0 52 52" className="success-check">
+            <circle cx="26" cy="26" r="24" />
+            <path d="M15 27.5l7.2 7.2L37.5 19" />
+          </svg>
         </span>
         <span className="eyebrow">Pedido registrado</span>
         <h1>{order?.cliente ? `¡Gracias, ${order.cliente.split(' ')[0]}!` : '¡Gracias por tu pedido!'}</h1>
@@ -47,7 +59,7 @@ export default function OrderSuccessView() {
           <div className="success-summary">
             <ul>
               {order.items.map((item, index) => (
-                <li key={`${item.id}-${item.varianteId || ''}-${index}`}>
+                <li key={`${item.id}-${item.varianteId || ''}-${index}`} style={{ '--i': index } as React.CSSProperties}>
                   <span>
                     <strong>
                       {item.cantidad} × {item.nombre}
@@ -60,7 +72,7 @@ export default function OrderSuccessView() {
             </ul>
             <div className="cart-summary-row cart-summary-total">
               <span>Total estimado</span>
-              <Price amount={order.total} size="lg" />
+              <Price amount={order.total} size="lg" animate="from-zero" />
             </div>
             <p className="success-meta">
               {order.metodoEntrega} · Pago: {order.metodoPago}

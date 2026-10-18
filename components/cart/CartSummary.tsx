@@ -13,7 +13,7 @@ export default function CartSummary({ children }: { children?: React.ReactNode }
         <span>
           Productos ({itemCount})
         </span>
-        <Price amount={subtotal} size="sm" showBs={false} />
+        <Price amount={subtotal} size="sm" showBs={false} animate />
       </div>
       <div className="cart-summary-row">
         <span>Envío</span>
@@ -21,7 +21,7 @@ export default function CartSummary({ children }: { children?: React.ReactNode }
       </div>
       <div className="cart-summary-row cart-summary-total">
         <span>Total estimado</span>
-        <Price amount={subtotal} size="lg" />
+        <Price amount={subtotal} size="lg" animate />
       </div>
       {children}
       <p className="summary-note">

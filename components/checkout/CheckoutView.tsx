@@ -283,7 +283,11 @@ export default function CheckoutView() {
             <p className="privacy-note">
               Al registrar el pedido autorizas a GutiStore a contactarte por WhatsApp para confirmar disponibilidad, entrega y pago.
             </p>
-            <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={submitting || syncing}>
+            <button
+              type="submit"
+              className={`btn btn-primary btn-lg btn-block checkout-submit-btn ${submitting ? 'is-sending' : ''}`}
+              disabled={submitting || syncing}
+            >
               {submitting ? (
                 <>
                   <span className="spinner" aria-hidden="true" /> Registrando pedido…
@@ -330,7 +334,7 @@ export default function CheckoutView() {
           </div>
           <div className="cart-summary-row cart-summary-total">
             <span>Total estimado</span>
-            <Price amount={subtotal} size="lg" />
+            <Price amount={subtotal} size="lg" animate />
           </div>
           <p className="summary-note">
             <Icon name="message" size={16} />

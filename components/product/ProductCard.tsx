@@ -7,6 +7,8 @@ import Price from '@/components/Price';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/context/CartContext';
 import { lineFromProduct } from '@/lib/cart';
+import { flyToCart } from '@/lib/motion';
+import { useAddedFlash } from '@/hooks/useAddedFlash';
 import {
   comparePrice,
   hasVariants,
@@ -26,6 +28,7 @@ const LOW_STOCK = 3;
 
 export default function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
   const { addItem } = useCart();
+  const [added, flashAdded] = useAddedFlash();
   const href = productUrl(product);
   const gallery = productGallery(product);
   const secondImage = gallery.find((url) => url !== product.imagen);
@@ -45,8 +48,9 @@ export default function ProductCard({ product, priority = false }: { product: Pr
   if (!withVariants && product.presentacion) details.push(product.presentacion);
 
   return (
-    <article className={`product-card ${inStock ? '' : 'is-sold-out'}`}>
-      <div className="product-card-media">
+    <article className={`product-card ${inStock ? '' : 'is-sold-out'}`} data-fly-root>
+      <div className="product-card-media" data-fly-image>
+        <span className="card-glare" aria-hidden="true" />
         <Link href={href} className="product-card-media-link" tabIndex={-1} aria-hidden="true">
           <ProductImage src={product.imagen || gallery[0]} alt="" eager={priority} className="primary" />
           {secondImage && product.imagen && (
@@ -58,12 +62,18 @@ export default function ProductCard({ product, priority = false }: { product: Pr
         {inStock && !withVariants && (
           <button
             type="button"
-            className="card-quick-add"
-            onClick={() => addItem(lineFromProduct(product, null), 1)}
+            className={`card-quick-add ${added ? 'is-added' : ''}`}
+            onClick={(event) => {
+              const result = addItem(lineFromProduct(product, null), 1);
+              if (result.ok) {
+                flyToCart(event.currentTarget);
+                flashAdded();
+              }
+            }}
             aria-label={`Agregar ${product.nombre} al carrito`}
             title="Agregar al carrito"
           >
-            <Icon name="plus" size={20} />
+            <Icon name={added ? 'check' : 'plus'} size={20} />
           </button>
         )}
       </div>

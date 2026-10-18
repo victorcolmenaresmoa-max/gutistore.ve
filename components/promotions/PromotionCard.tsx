@@ -9,9 +9,12 @@ import { useCart } from '@/context/CartContext';
 import { lineFromPromotion } from '@/lib/cart';
 import { formatUSD } from '@/lib/currency';
 import { splitLines } from '@/lib/text';
+import { flyToCart } from '@/lib/motion';
+import { useAddedFlash } from '@/hooks/useAddedFlash';
 
 export default function PromotionCard({ promotion }: { promotion: Promotion }) {
   const { addItem } = useCart();
+  const [added, flashAdded] = useAddedFlash();
   const gallery = Array.from(new Set([promotion.imagen, ...(promotion.imagenes || [])].map((url) => (url || '').trim()).filter(Boolean)));
   const [selected, setSelected] = useState('');
   const activeImage = gallery.includes(selected) ? selected : gallery[0] || '';
@@ -21,8 +24,8 @@ export default function PromotionCard({ promotion }: { promotion: Promotion }) {
   const discount = hasDiscount ? Math.round((1 - promotion.precio / regular) * 100) : 0;
 
   return (
-    <article className="promo-card">
-      <div className="promo-media">
+    <article className="promo-card" data-fly-root>
+      <div className="promo-media" data-fly-image>
         <ProductImage src={activeImage} alt={promotion.titulo} />
         {discount > 0 && (
           <div className="badges promo-badges">
@@ -62,8 +65,24 @@ export default function PromotionCard({ promotion }: { promotion: Promotion }) {
             <Price amount={promotion.precio} compareAt={hasDiscount ? regular : 0} size="lg" />
             {hasDiscount && <span className="promo-saving">Ahorras {formatUSD(regular - promotion.precio)}</span>}
           </div>
-          <button type="button" className="btn btn-primary" onClick={() => addItem(lineFromPromotion(promotion), 1)}>
-            Agregar al carrito
+          <button
+            type="button"
+            className={`btn btn-primary btn-add ${added ? 'is-added' : ''}`}
+            onClick={(event) => {
+              const result = addItem(lineFromPromotion(promotion), 1);
+              if (result.ok) {
+                flyToCart(event.currentTarget);
+                flashAdded();
+              }
+            }}
+          >
+            {added ? (
+              <>
+                <Icon name="check" size={18} /> ¡Agregado!
+              </>
+            ) : (
+              'Agregar al carrito'
+            )}
           </button>
         </div>
       </div>

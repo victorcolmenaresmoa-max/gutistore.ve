@@ -1,6 +1,7 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import CartDrawer from '@/components/cart/CartDrawer';
+import MotionEffects from '@/components/motion/MotionEffects';
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       </main>
       <Footer />
       <CartDrawer />
+      <MotionEffects />
     </div>
   );
 }

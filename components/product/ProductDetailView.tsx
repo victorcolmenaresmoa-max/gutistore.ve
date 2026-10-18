@@ -12,6 +12,8 @@ import { useCart } from '@/context/CartContext';
 import { useProducts } from '@/hooks/useStoreData';
 import { getProduct } from '@/lib/api';
 import { lineFromProduct } from '@/lib/cart';
+import { flyToCart } from '@/lib/motion';
+import { useAddedFlash } from '@/hooks/useAddedFlash';
 import { categoryHref, relatedProducts } from '@/lib/catalog';
 import { formatUSD } from '@/lib/currency';
 import {
@@ -63,6 +65,7 @@ export default function ProductDetailView({
 }) {
   const router = useRouter();
   const { addItem, quantityOf, openDrawer } = useCart();
+  const [added, flashAdded] = useAddedFlash(1800);
   const catalog = useProducts();
 
   const [product, setProduct] = useState<Product | null>(initialProduct);
@@ -176,7 +179,7 @@ export default function ProductDetailView({
     setQuantity(1);
   };
 
-  const addToCart = (goToCheckout = false) => {
+  const addToCart = (goToCheckout = false, trigger?: HTMLElement) => {
     if (withVariants && !variant) {
       setShowErrors(true);
       selectorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -185,6 +188,10 @@ export default function ProductDetailView({
     const result = addItem(lineFromProduct(product, variant), safeQuantity);
     if (result.ok) {
       setQuantity(1);
+      if (!goToCheckout) {
+        flyToCart(trigger || null);
+        flashAdded();
+      }
       if (goToCheckout) router.push('/checkout');
     }
   };
@@ -218,7 +225,7 @@ export default function ProductDetailView({
         : 'Agregar al carrito';
 
   return (
-    <div className="container pdp">
+    <div className="container pdp" data-fly-root>
       <nav className="breadcrumbs" aria-label="Ruta de navegación">
         <ol>
           <li>
@@ -240,7 +247,7 @@ export default function ProductDetailView({
       </nav>
 
       <div className="pdp-grid">
-        <section className="pdp-gallery" aria-label="Galería">
+        <section className="pdp-gallery" aria-label="Galería" data-fly-image>
           <ProductGallery images={gallery} activeImage={activeImage} onChange={setActiveImage} name={product.nombre}>
             <ProductBadges product={product} price={price} className="pdp-badges" />
           </ProductGallery>
@@ -281,11 +288,17 @@ export default function ProductDetailView({
             </div>
             <button
               type="button"
-              className="btn btn-primary btn-lg pdp-add"
-              onClick={() => addToCart(false)}
+              className={`btn btn-primary btn-lg pdp-add btn-add ${added ? 'is-added' : ''}`}
+              onClick={(event) => addToCart(false, event.currentTarget)}
               disabled={blockedByStock || allInCart}
             >
-              {primaryLabel}
+              {added ? (
+                <>
+                  <Icon name="check" size={19} /> ¡Agregado al carrito!
+                </>
+              ) : (
+                primaryLabel
+              )}
             </button>
             {!blockedByStock && !allInCart && (
               <button type="button" className="btn btn-outline-dark btn-lg pdp-buy-now" onClick={() => addToCart(true)}>

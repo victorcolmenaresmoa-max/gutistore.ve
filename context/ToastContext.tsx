@@ -69,6 +69,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <button type="button" className="toast-close" onClick={() => dismiss(toast.id)} aria-label="Cerrar aviso">
               <Icon name="close" size={16} />
             </button>
+            <span className="toast-timer" style={{ animationDuration: `${TOAST_DURATION_MS}ms` }} aria-hidden="true" />
           </div>
         ))}
       </div>

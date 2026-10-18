@@ -67,8 +67,8 @@ export default function CartPageView() {
           <section aria-label="Productos del carrito">
             <CartNotices notices={notices} onDismiss={dismiss} />
             <div className="cart-lines">
-              {lines.map((line) => (
-                <CartLineItem key={line.key} line={line} />
+              {lines.map((line, index) => (
+                <CartLineItem key={line.key} line={line} index={index} />
               ))}
             </div>
             <div className="cart-page-actions">

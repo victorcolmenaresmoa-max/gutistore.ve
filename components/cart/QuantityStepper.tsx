@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import Icon from '@/components/Icons';
 
 export default function QuantityStepper({
@@ -19,6 +20,10 @@ export default function QuantityStepper({
   size?: 'sm' | 'md';
   disabled?: boolean;
 }) {
+  // Dirección del cambio para animar el número hacia arriba o hacia abajo.
+  const previous = useRef(value);
+  const direction = value > previous.current ? 'up' : value < previous.current ? 'down' : 'none';
+  previous.current = value;
   const canDecrease = !disabled && value > min;
   const canIncrease = !disabled && value < max;
 
@@ -32,7 +37,11 @@ export default function QuantityStepper({
       >
         <Icon name="minus" size={size === 'sm' ? 14 : 16} />
       </button>
-      <output aria-live="polite">{value}</output>
+      <output aria-live="polite">
+        <span key={value} className={`qty-value qty-${direction}`}>
+          {value}
+        </span>
+      </output>
       <button
         type="button"
         onClick={() => onChange(value + 1)}

@@ -7,6 +7,7 @@ import BrandLogo from '@/components/BrandLogo';
 import Icon from '@/components/Icons';
 import CategoryArt from '@/components/CategoryArt';
 import { useCart } from '@/context/CartContext';
+import { CART_HIT_EVENT } from '@/lib/motion';
 import { useCategories, useProducts } from '@/hooks/useStoreData';
 import { useDialog } from '@/hooks/useDialog';
 import { buildStoreCategories, categoryArtKind } from '@/lib/categories';
@@ -87,16 +88,23 @@ export default function Navbar() {
     setSearchOpen(false);
   }, [pathname]);
 
-  // Pequeña animación del contador al agregar productos.
+  // El carrito se sacude y el contador rebota cuando "recibe" un producto
+  // (al terminar la animación de vuelo, o al instante si no hay animación).
+  const [cartHit, setCartHit] = useState(0);
   useEffect(() => {
-    if (ready && itemCount > previousCount.current) {
-      setBump(true);
-      const timer = window.setTimeout(() => setBump(false), 450);
-      previousCount.current = itemCount;
-      return () => window.clearTimeout(timer);
-    }
+    const onHit = () => setCartHit((value) => value + 1);
+    window.addEventListener(CART_HIT_EVENT, onHit);
+    return () => window.removeEventListener(CART_HIT_EVENT, onHit);
+  }, []);
+  useEffect(() => {
+    if (!cartHit) return;
+    setBump(true);
+    const timer = window.setTimeout(() => setBump(false), 650);
+    return () => window.clearTimeout(timer);
+  }, [cartHit]);
+  useEffect(() => {
     previousCount.current = itemCount;
-  }, [itemCount, ready]);
+  }, [itemCount]);
 
   useEffect(() => {
     if (!megaOpen) return;
@@ -204,7 +212,13 @@ export default function Navbar() {
             >
               <Icon name={searchOpen ? 'close' : 'search'} size={21} />
             </button>
-            <button type="button" className="nav-icon-btn nav-cart-btn" onClick={openDrawer} aria-label={cartLabel}>
+            <button
+              type="button"
+              className={`nav-icon-btn nav-cart-btn ${bump ? 'is-hit' : ''}`}
+              onClick={openDrawer}
+              aria-label={cartLabel}
+              data-cart-target
+            >
               <Icon name="cart" size={22} />
               {ready && itemCount > 0 && (
                 <span className={`cart-badge ${bump ? 'bump' : ''}`} aria-hidden="true">
