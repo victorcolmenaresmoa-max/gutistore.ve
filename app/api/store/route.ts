@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { ADMIN_COOKIE_NAME, isValidAdminSessionToken } from '@/lib/admin-auth';
 import { supabaseRest } from '@/lib/supabase-rest';
 import { findProduct, isMissingSchemaError, listCategories, listProducts } from '@/lib/server/catalog';
@@ -32,6 +32,7 @@ import {
   sanitizePromotionInput,
 } from '@/lib/server/validate';
 import { slugify } from '@/lib/text';
+import { notifyNewOrder } from '@/lib/server/telegram';
 import type {
   ApiResponse,
   CategoryInput,
@@ -465,6 +466,10 @@ export async function POST(request: NextRequest) {
             throw error;
           }
         }
+        // Aviso por Telegram después de responder al cliente; si falla, el pedido sigue guardado.
+        const notifiedOrder = order;
+        const notifiedCreated = created;
+        after(() => notifyNewOrder(notifiedOrder, notifiedCreated));
         return json({ ok: true, data: created });
       }
 
