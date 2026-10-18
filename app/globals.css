@@ -5282,3 +5282,474 @@ html.is-scrolled .site-header {
     transition-delay: 0s !important;
   }
 }
+
+/* ==========================================================================
+   Logo animado de la portada (components/home/LogoStage.tsx)
+   Cada pieza es un recorte del logo original. Línea de tiempo:
+   0.0s brillo · 0.25s se dibuja la G · 1.0s llegan las ruedas ·
+   1.35s caen "Guti" y saltan "Store" · 2.1s se escribe el lema ·
+   2.6s destello · luego flota y "arranca" cada 7 segundos.
+   ========================================================================== */
+
+@property --ls-sweep {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 360deg;
+}
+
+.logo-stage {
+  --px: 0;
+  --py: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 600px;
+  aspect-ratio: 1 / 0.92;
+  margin-inline: auto;
+  cursor: pointer;
+  perspective: 1100px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.ls-logo {
+  position: relative;
+  width: 84%;
+  aspect-ratio: 786 / 589;
+  transform: rotateY(calc(var(--px) * 16deg)) rotateX(calc(var(--py) * -12deg));
+  transform-style: preserve-3d;
+  transition: transform 0.5s var(--ease-out);
+}
+
+.ls-piece {
+  position: absolute;
+  display: block;
+  background-repeat: no-repeat;
+}
+
+/* --- Fondo: brillo rojo, anillo con órbita y partículas --- */
+.ls-glow {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  width: 95%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(252, 29, 45, 0.42) 0%, rgba(252, 29, 45, 0.12) 38%, transparent 66%);
+  transform: translate(-50%, -50%) translateZ(-60px);
+  animation: ls-glow-in 1.2s var(--ease-out) both, ls-glow-pulse 4s ease-in-out 1.2s infinite;
+  pointer-events: none;
+}
+
+@keyframes ls-glow-in {
+  from {
+    opacity: 0;
+    scale: 0.3;
+  }
+}
+
+@keyframes ls-glow-pulse {
+  50% {
+    opacity: 0.65;
+    scale: 1.08;
+  }
+}
+
+.ls-ring {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  width: 62%;
+  aspect-ratio: 1;
+  border: 1.5px dashed rgba(252, 29, 45, 0.38);
+  border-radius: 50%;
+  translate: -50% -50%;
+  animation: ls-ring-in 1s var(--ease-out) 0.35s both, ls-spin 22s linear 1.35s infinite;
+  pointer-events: none;
+}
+
+.ls-orbit {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  border-radius: 50%;
+  background: var(--c-red);
+  box-shadow: 0 0 14px 3px rgba(252, 29, 45, 0.75);
+}
+
+@keyframes ls-ring-in {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+}
+
+@keyframes ls-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+.ls-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle at 50% 55%, #000 35%, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 55%, #000 35%, transparent 72%);
+}
+
+.ls-particles span {
+  position: absolute;
+  left: var(--x);
+  bottom: 8%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--c-red);
+  box-shadow: 0 0 8px rgba(252, 29, 45, 0.9);
+  opacity: 0;
+  animation: ls-rise 5.5s linear calc(1.5s + var(--i) * 0.39s) infinite;
+}
+
+.ls-particles span:nth-child(3n) {
+  width: 3px;
+  height: 3px;
+  background: var(--c-white);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+@keyframes ls-rise {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(18px, -320px);
+  }
+}
+
+/* --- Isotipo (G + ruedas) --- */
+.ls-mark {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 62%;
+  animation: ls-land 0.55s var(--ease-out) 1.3s both, ls-idle 7s ease-in-out 3.4s infinite;
+}
+
+.ls-drive {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 62%;
+  /* El brillo va aquí (no en la G) para que la máscara del dibujado no lo recorte. */
+  filter: drop-shadow(0 0 22px rgba(252, 29, 45, 0.45));
+}
+
+.ls-g {
+  -webkit-mask-image: conic-gradient(from -40deg at 50% 50%, #000 var(--ls-sweep), transparent 0);
+  mask-image: conic-gradient(from -40deg at 50% 50%, #000 var(--ls-sweep), transparent 0);
+  animation: ls-draw 1.05s cubic-bezier(0.65, 0, 0.25, 1) 0.25s both, ls-g-pop 0.9s var(--ease-spring) 0.25s both;
+}
+
+@keyframes ls-draw {
+  from {
+    --ls-sweep: 0deg;
+  }
+  to {
+    --ls-sweep: 360deg;
+  }
+}
+
+@keyframes ls-g-pop {
+  from {
+    transform: scale(0.55) rotate(-25deg);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.ls-wheel {
+  animation: ls-wheel-in 0.75s var(--ease-spring) calc(0.95s + var(--i) * 0.13s) both;
+}
+
+@keyframes ls-wheel-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-900%) scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(40%) scale(1.15, 0.85);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.ls-floor {
+  position: absolute;
+  left: 36%;
+  top: 60.5%;
+  width: 30%;
+  height: 4%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(252, 29, 45, 0.55), transparent 70%);
+  animation: fade-in 0.6s ease 1.25s both;
+}
+
+/* Al aterrizar las ruedas, la G rebota */
+@keyframes ls-land {
+  0% {
+    transform: none;
+  }
+  35% {
+    transform: scale(1.04, 0.94) translateY(2%);
+  }
+  70% {
+    transform: scale(0.98, 1.03) translateY(-1.5%);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Vida en reposo: flota y cada 7 s "arranca" hacia adelante */
+@keyframes ls-idle {
+  0%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: translateY(-2.2%);
+  }
+  60% {
+    transform: none;
+  }
+  70% {
+    transform: translateX(-1.5%) skewX(5deg);
+  }
+  76% {
+    transform: translateX(4%) skewX(-9deg);
+  }
+  84% {
+    transform: translateX(-0.6%) skewX(2deg);
+  }
+  90% {
+    transform: none;
+  }
+}
+
+/* Líneas de velocidad detrás de la G */
+.ls-speed {
+  position: absolute;
+  left: 4%;
+  top: 14%;
+  width: 26%;
+  height: 46%;
+  pointer-events: none;
+}
+
+.ls-speed span {
+  position: absolute;
+  right: 0;
+  height: 3.5%;
+  min-height: 3px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, transparent, var(--c-red));
+  opacity: 0;
+  transform-origin: right center;
+  animation: ls-streak 7s ease-out 3.4s infinite;
+}
+
+.ls-speed span:nth-child(1) {
+  top: 18%;
+  width: 70%;
+}
+
+.ls-speed span:nth-child(2) {
+  top: 48%;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9));
+  animation-delay: 3.45s;
+}
+
+.ls-speed span:nth-child(3) {
+  top: 78%;
+  width: 55%;
+  animation-delay: 3.5s;
+}
+
+@keyframes ls-streak {
+  0%,
+  70% {
+    opacity: 0;
+    transform: translateX(30%) scaleX(0.2);
+  }
+  76% {
+    opacity: 1;
+    transform: none;
+  }
+  88%,
+  100% {
+    opacity: 0;
+    transform: translateX(-60%) scaleX(0.6);
+  }
+}
+
+/* --- Turbo al tocar --- */
+.ls-speed-turbo span {
+  animation: none;
+}
+
+.ls-mark.is-turbo .ls-drive {
+  animation: ls-turbo 1s var(--ease-out);
+}
+
+.ls-mark.is-turbo .ls-speed-turbo span {
+  animation: ls-streak-turbo 0.9s var(--ease-out);
+}
+
+.ls-mark.is-turbo .ls-speed-turbo span:nth-child(2) {
+  animation-delay: 0.05s;
+}
+
+.ls-mark.is-turbo .ls-speed-turbo span:nth-child(3) {
+  animation-delay: 0.1s;
+}
+
+@keyframes ls-turbo {
+  0% {
+    transform: none;
+  }
+  18% {
+    transform: translateX(-5%) skewX(10deg) scale(0.96);
+  }
+  40% {
+    transform: translateX(9%) skewX(-14deg) scale(1.05);
+  }
+  65% {
+    transform: translateX(-2%) skewX(4deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes ls-streak-turbo {
+  0% {
+    opacity: 0;
+    transform: translateX(40%) scaleX(0.1);
+  }
+  30% {
+    opacity: 1;
+    transform: scaleX(1.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-90%) scaleX(0.4);
+  }
+}
+
+/* --- Palabra GutiStore --- */
+.ls-word {
+  position: absolute;
+  inset: 0;
+}
+
+.ls-letter.is-white {
+  animation: ls-drop 0.7s var(--ease-spring) calc(1.35s + var(--i) * 0.075s) both,
+    ls-wave 7s ease-in-out calc(4.6s + var(--i) * 0.06s) infinite;
+}
+
+.ls-letter.is-red {
+  filter: drop-shadow(0 0 10px rgba(252, 29, 45, 0.35));
+  animation: ls-pop 0.65s var(--ease-spring) calc(1.35s + var(--i) * 0.075s) both,
+    ls-wave 7s ease-in-out calc(4.6s + var(--i) * 0.06s) infinite;
+}
+
+@keyframes ls-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-80%) rotate(-12deg);
+  }
+}
+
+@keyframes ls-pop {
+  from {
+    opacity: 0;
+    transform: translateY(35%) scale(0) rotate(14deg);
+  }
+}
+
+/* Ola que recorre las letras de vez en cuando */
+@keyframes ls-wave {
+  0%,
+  8%,
+  100% {
+    translate: 0 0;
+  }
+  4% {
+    translate: 0 -12%;
+  }
+}
+
+/* --- Lema "Suplementos & Accesorios" --- */
+.ls-char {
+  animation: ls-type 0.4s var(--ease-out) calc(2.1s + var(--i) * 0.035s) both;
+}
+
+@keyframes ls-type {
+  from {
+    opacity: 0;
+    transform: translateY(70%);
+    filter: blur(4px);
+  }
+}
+
+/* --- Destello que recorre todo el logo --- */
+.ls-shine {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, 0.85) 50%, transparent 58%) no-repeat;
+  background-size: 260% 100%;
+  background-position: 130% 0;
+  pointer-events: none;
+  animation: ls-shine 7s ease-in-out 2.7s infinite;
+}
+
+@keyframes ls-shine {
+  0% {
+    background-position: 130% 0;
+  }
+  16%,
+  100% {
+    background-position: -30% 0;
+  }
+}
+
+@media (hover: hover) {
+  .logo-stage:hover .ls-glow {
+    animation-play-state: running, paused;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 999px) {
+  .logo-stage {
+    max-width: 440px;
+    aspect-ratio: 1 / 0.82;
+  }
+}

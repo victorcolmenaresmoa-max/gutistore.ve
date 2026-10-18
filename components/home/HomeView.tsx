@@ -6,17 +6,16 @@ import type { Product } from '@/types';
 import CategoryArt from '@/components/CategoryArt';
 import Icon from '@/components/Icons';
 import ProductImage from '@/components/ProductImage';
+import LogoStage from './LogoStage';
 import { ProductGrid } from '@/components/product/ProductCard';
 import PromotionsSection from '@/components/promotions/PromotionsSection';
 import SectionHeading from '@/components/ui/SectionHeading';
 import { EmptyState, ErrorState } from '@/components/ui/States';
-import { useCurrency } from '@/context/CurrencyContext';
 import { useCategories, useProducts } from '@/hooks/useStoreData';
 import { buildStoreCategories, categoryArtKind, StoreCategory } from '@/lib/categories';
 import { categoryHref } from '@/lib/catalog';
-import { formatBs, formatUSD, hasRate } from '@/lib/currency';
 import { DELIVERY_METHODS, PAYMENT_METHODS } from '@/lib/orders';
-import { comparePrice, isInStock, isOnSale, priceRange, productUrl } from '@/lib/product';
+import { isInStock, isOnSale } from '@/lib/product';
 import { normalizeText } from '@/lib/text';
 
 const STEPS = [
@@ -43,43 +42,6 @@ const FAQ = [
     a: 'La tienda solo te deja elegir combinaciones con stock. Si algo cambia antes de confirmar, tu asesor te ofrecerá alternativas.',
   },
 ];
-
-/* ---------- Vitrina del hero: productos reales con su etiqueta de precio ---------- */
-
-function PriceTag({ product }: { product: Product }) {
-  const { rate } = useCurrency();
-  const { min, max } = priceRange(product);
-  const compare = min === max ? comparePrice(product, min) : 0;
-  return (
-    <span className="price-tag" aria-hidden="true">
-      <span className="price-tag-hole" />
-      {compare > min && <s>{formatUSD(compare)}</s>}
-      <strong>
-        {min !== max && <small>desde </small>}
-        {formatUSD(min)}
-      </strong>
-      {hasRate(rate) && <span>{formatBs(min, rate)}</span>}
-    </span>
-  );
-}
-
-function Showcase({ products }: { products: Product[] }) {
-  return (
-    <ul className="showcase" aria-label="Productos destacados">
-      {products.map((product, index) => (
-        <li key={product.id} className={`showcase-item showcase-item-${index + 1}`}>
-          <Link href={productUrl(product)} className="showcase-link">
-            <span className="showcase-media">
-              <ProductImage src={product.imagen} alt="" eager />
-            </span>
-            <span className="showcase-name">{product.nombre}</span>
-            <PriceTag product={product} />
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 /* ---------- Categorías ---------- */
 
@@ -115,13 +77,9 @@ export default function HomeView() {
   const categories = useCategories();
   const storeCategories = useMemo(() => buildStoreCategories(products, categories.data), [products, categories.data]);
 
-  const { showcase, featured, onSale, fresh, covers } = useMemo(() => {
+  const { featured, onSale, fresh, covers } = useMemo(() => {
     const available = products.filter(isInStock);
     const withImage = available.filter((p) => p.imagen);
-    const showcaseList = [
-      ...withImage.filter((p) => p.destacado),
-      ...withImage.filter((p) => !p.destacado),
-    ].slice(0, 3);
 
     const featuredList = available.filter((p) => p.destacado).slice(0, 8);
     const used = new Set(featuredList.map((p) => p.id));
@@ -139,15 +97,13 @@ export default function HomeView() {
       if (!coverMap.has(key)) coverMap.set(key, p.imagen);
     });
 
-    return { showcase: showcaseList, featured: featuredList, onSale: saleList, fresh: newList, covers: coverMap };
+    return { featured: featuredList, onSale: saleList, fresh: newList, covers: coverMap };
   }, [products]);
-
-  const hasShowcase = showcase.length >= 2;
 
   return (
     <>
       {/* ============ PORTADA ============ */}
-      <section className={`hero ${hasShowcase ? 'has-showcase' : ''}`} aria-labelledby="hero-title">
+      <section className="hero has-showcase" aria-labelledby="hero-title">
         <div className="container hero-grid">
           <div className="hero-copy">
             <h1 id="hero-title">Entrena, viste y vive a tu ritmo.</h1>
@@ -165,21 +121,7 @@ export default function HomeView() {
             </div>
           </div>
 
-          {hasShowcase ? (
-            <Showcase products={showcase} />
-          ) : (
-            !loading &&
-            storeCategories.length > 0 && (
-              <nav className="hero-categories" aria-label="Categorías">
-                {storeCategories.slice(0, 6).map((category) => (
-                  <Link key={category.nombre} href={categoryHref(category.nombre)}>
-                    <span>{category.nombre}</span>
-                    <small>{category.count}</small>
-                  </Link>
-                ))}
-              </nav>
-            )
-          )}
+          <LogoStage />
         </div>
       </section>
 
