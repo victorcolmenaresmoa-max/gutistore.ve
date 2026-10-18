@@ -35,7 +35,10 @@ type FieldErrors = Partial<Record<keyof FormState, string>>;
 function validate(form: FormState, needsAddress: boolean): FieldErrors {
   const errors: FieldErrors = {};
   if (!form.cliente.trim()) errors.cliente = 'Escribe tu nombre y apellido.';
-  if (form.telefono.replace(/\D/g, '').length < 8) errors.telefono = 'Ingresa un WhatsApp válido con código de país.';
+  const phone = form.telefono.trim();
+  if (phone.replace(/\D/g, '').length < 8 || !/^[\d\s+()-]+$/.test(phone)) {
+    errors.telefono = 'Ingresa un WhatsApp válido: solo números, espacios, + o guiones.';
+  }
   if (form.email.trim() && !/^\S+@\S+\.\S+$/.test(form.email.trim())) errors.email = 'El correo no parece válido (puedes dejarlo vacío).';
   if (!form.ubicacion.trim()) errors.ubicacion = 'Indica tu ciudad y estado.';
   if (needsAddress && !form.direccion.trim()) errors.direccion = 'Indica la dirección o agencia de entrega.';

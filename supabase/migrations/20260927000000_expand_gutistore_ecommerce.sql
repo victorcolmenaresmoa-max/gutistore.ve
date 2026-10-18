@@ -18,6 +18,10 @@
 --       internamente, así que la lógica de vendedores (?ref=) se conserva.
 --
 --  Cómo ejecutarlo: Supabase → SQL Editor → New query → pegar todo → Run.
+--
+--  IMPORTANTE: si vuelves a ejecutar este archivo, ejecuta DESPUÉS
+--  20261018000000_arreglo_crear_pedido.sql. Este archivo trae la versión
+--  antigua de crear_pedido_gutistore, que falla con "column reference id is ambiguous".
 -- =====================================================================
 
 create extension if not exists pgcrypto;
