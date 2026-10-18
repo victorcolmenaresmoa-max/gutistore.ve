@@ -7,6 +7,7 @@ import Icon from '@/components/Icons';
 import { useCategories, useProducts } from '@/hooks/useStoreData';
 import { buildStoreCategories } from '@/lib/categories';
 import { categoryHref } from '@/lib/catalog';
+import { storeWhatsappLink } from '@/lib/whatsapp';
 
 export default function Footer() {
   const products = useProducts();
@@ -34,7 +35,7 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <a href="https://wa.me/584123602569" target="_blank" rel="noopener noreferrer">
+              <a href={storeWhatsappLink()} target="_blank" rel="noopener noreferrer">
                 <Icon name="whatsapp" size={18} /> WhatsApp
               </a>
             </li>

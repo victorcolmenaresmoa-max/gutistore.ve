@@ -6,6 +6,7 @@ import Icon from '@/components/Icons';
 import { formatUSD } from '@/lib/currency';
 import { ORDER_STATUSES, statusClass } from '@/lib/orders';
 import { shortOrderId } from '@/lib/text';
+import { orderWhatsappMessage, whatsappLink } from '@/lib/whatsapp';
 
 function itemDetail(item: OrderItem) {
   const parts = [
@@ -28,40 +29,8 @@ function formatDate(value: string) {
   }).format(date);
 }
 
-function normalizeWhatsapp(phone: string) {
-  return String(phone || '').replace(/\D/g, '').replace(/^00/, '');
-}
-
 function getOrderItems(order: OrderRecord) {
   return Array.isArray(order.items) ? order.items : [];
-}
-
-function buildWhatsappMessage(order: OrderRecord) {
-  const items = getOrderItems(order);
-  const productLines = items.length
-    ? items
-        .map(
-          (item) =>
-            `• ${item.cantidad} × ${item.nombre}${item.varianteNombre ? ` (${item.varianteNombre})` : ''} — ${formatUSD(
-              item.cantidad * item.precio
-            )}`
-        )
-        .join('\n')
-    : '• Producto por confirmar';
-
-  return [
-    `Hola ${order.cliente}, te escribimos de GutiStore.`,
-    '',
-    `Recibimos tu pedido #${shortOrderId(order.id)}:`,
-    productLines,
-    '',
-    `Total estimado: ${formatUSD(order.total)} USD`,
-    `Ubicación: ${order.ubicacion || 'Por confirmar'}`,
-    `Entrega: ${order.metodoEntrega || 'Por confirmar'}`,
-    `Pago: ${order.metodoPago || 'Por confirmar'}`,
-    '',
-    'Queremos confirmar disponibilidad y coordinar contigo los próximos pasos. ¿Podemos continuar por este medio?',
-  ].join('\n');
 }
 
 interface Props {
@@ -101,7 +70,7 @@ export default function AdminOrderList({
 
   const copyOrderSummary = async (order: OrderRecord) => {
     try {
-      await navigator.clipboard.writeText(buildWhatsappMessage(order));
+      await navigator.clipboard.writeText(orderWhatsappMessage(order));
       setCopiedId(order.id);
       window.setTimeout(() => setCopiedId(null), 1800);
     } catch {
@@ -152,10 +121,7 @@ export default function AdminOrderList({
         <div className="orders-list">
           {filtered.map((order) => {
             const items = getOrderItems(order);
-            const whatsappPhone = normalizeWhatsapp(order.telefono);
-            const whatsappUrl = whatsappPhone
-              ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(buildWhatsappMessage(order))}`
-              : '';
+            const whatsappUrl = whatsappLink(order.telefono, orderWhatsappMessage(order));
             const expanded = expandedId === order.id;
 
             return (
@@ -230,6 +196,7 @@ export default function AdminOrderList({
                   >
                     <Icon name="whatsapp" size={17} /> Contactar por WhatsApp
                   </a>
+                  <small className="order-wa-hint">Mensaje según el estado: {order.estado}</small>
                 </div>
 
                 {expanded && (

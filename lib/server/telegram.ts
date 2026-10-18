@@ -11,6 +11,7 @@
  */
 import { formatUSD } from '@/lib/currency';
 import type { CreatedOrder, OrderItem, OrderPayload } from '@/types';
+import { orderWhatsappMessage, whatsappLink } from '@/lib/whatsapp';
 
 const TELEGRAM_TIMEOUT_MS = 8000;
 const MAX_MESSAGE_LENGTH = 4000; // Telegram admite 4096 caracteres.
@@ -42,14 +43,6 @@ function siteUrl() {
   return '';
 }
 
-/** Número para el enlace de WhatsApp: solo dígitos; los números locales (04xx) pasan a +58. */
-function whatsappNumber(phone: string) {
-  let digits = phone.replace(/\D/g, '');
-  if (digits.startsWith('00')) digits = digits.slice(2);
-  if (digits.startsWith('0') && digits.length === 11) digits = `58${digits.slice(1)}`;
-  return digits;
-}
-
 function itemLine(item: OrderItem) {
   const detail = [item.varianteNombre, item.color, item.talla, item.opcionNombre || item.opcion]
     .filter(Boolean)
@@ -64,7 +57,19 @@ export function buildOrderMessage(order: OrderPayload, created: CreatedOrder) {
   const items = created.items && created.items.length ? created.items : order.items;
   const total = Number(created.total) || items.reduce((sum, i) => sum + (i.subtotal ?? i.precio * i.cantidad), 0);
   const shortId = created.id ? created.id.slice(0, 8).toUpperCase() : '';
-  const wa = whatsappNumber(order.telefono);
+  const wa = whatsappLink(
+    order.telefono,
+    orderWhatsappMessage({
+      id: created.id || '',
+      cliente: order.cliente,
+      estado: 'Pendiente',
+      total,
+      items,
+      ubicacion: order.ubicacion,
+      metodoEntrega: order.metodoEntrega,
+      metodoPago: order.metodoPago,
+    })
+  );
   const url = siteUrl();
 
   // null = línea omitida; '' = línea en blanco para separar bloques.
@@ -72,7 +77,7 @@ export function buildOrderMessage(order: OrderPayload, created: CreatedOrder) {
     `🛒 <b>Nuevo pedido${shortId ? ` #${esc(shortId)}` : ''}</b>`,
     '',
     `👤 <b>${esc(order.cliente)}</b>`,
-    wa ? `📱 <a href="https://wa.me/${wa}">${esc(order.telefono)}</a> (toca para abrir WhatsApp)` : `📱 ${esc(order.telefono)}`,
+    wa ? `📱 <a href="${esc(wa)}">${esc(order.telefono)}</a> (toca para escribirle por WhatsApp con el mensaje listo)` : `📱 ${esc(order.telefono)}`,
     order.email ? `✉️ ${esc(order.email)}` : null,
     `📍 ${esc(order.ubicacion)}${order.direccion ? ` — ${esc(order.direccion)}` : ''}`,
     `🚚 ${esc(order.metodoEntrega)}`,
