@@ -4463,6 +4463,27 @@ p {
   font-size: var(--fs-sm);
 }
 
+.footer-contact {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-sm);
+}
+
+.footer-contact a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  transition: color var(--t-fast) var(--ease);
+}
+
+.footer-contact a:hover {
+  color: var(--c-white);
+}
+
 .footer-col {
   display: grid;
   align-content: start;

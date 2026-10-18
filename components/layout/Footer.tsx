@@ -27,6 +27,18 @@ export default function Footer() {
             Suplementos, ropa deportiva y accesorios. Haces tu pedido en línea y lo confirmamos contigo por
             WhatsApp.
           </p>
+          <ul className="footer-contact" aria-label="Contacto">
+            <li>
+              <a href="https://www.instagram.com/gutistore.me/" target="_blank" rel="noopener noreferrer">
+                <Icon name="instagram" size={18} /> @gutistore.me
+              </a>
+            </li>
+            <li>
+              <a href="https://wa.me/584123602569" target="_blank" rel="noopener noreferrer">
+                <Icon name="whatsapp" size={18} /> 0412-360-2569
+              </a>
+            </li>
+          </ul>
         </div>
 
         <nav className="footer-col" aria-label="Tienda">
