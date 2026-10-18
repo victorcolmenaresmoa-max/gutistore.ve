@@ -115,9 +115,6 @@ export default function LogoStage() {
 
       <div className="ls-logo" aria-hidden="true">
         <span className="ls-glow" />
-        <span className="ls-ring">
-          <span className="ls-orbit" />
-        </span>
 
         {/* Isotipo: la G y sus ruedas se mueven juntas */}
         <div className={`ls-mark ${turbo ? 'is-turbo' : ''}`}>
